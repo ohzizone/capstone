@@ -1,0 +1,59 @@
+import 'package:flutter/material.dart';
+import 'package:hive_flutter/adapters.dart';
+import 'package:running_mate/theme/colors.dart';
+import 'package:running_mate/screens/slash_screen.dart';
+
+// 앱의 시작점
+// runApp 함수의 괄호 안에는 위젯이 들어간다.
+void main() async {
+  await Hive.initFlutter();
+  // var box = await Hive.openBox('dataBox');
+  runApp(MyApp());
+}
+
+// stl 입력
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: '러닝 메이트',
+      // home: SplashScreen(),
+      home: FirstPage(),
+    );
+  }
+}
+
+class FirstPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        appBar: AppBar(
+          title: Text('First Page'),
+        ),
+        body: Center(
+          child: ElevatedButton(
+              child: Text('Go To the Second page'),
+              onPressed: () {
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => SecondPage()));
+              }),
+        ));
+  }
+}
+
+class SecondPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        appBar: AppBar(
+          title: Text('Second Page'),
+        ),
+        body: Center(
+          child: ElevatedButton(
+              child: Text('Go To the First page'),
+              onPressed: () {
+                Navigator.pop(context);
+              }),
+        ));
+  }
+}

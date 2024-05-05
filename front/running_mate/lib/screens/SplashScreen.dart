@@ -20,7 +20,7 @@ class _SplashScreenState extends State<SplashScreen>
     // 5초 후에 FirstPage로 이동
     Future.delayed(Duration(seconds: 5), () {
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => FirstPage()),
+        MaterialPageRoute(builder: (_) => HomeScreen()),
       );
     });
   }
