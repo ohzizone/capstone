@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:running_mate/screens/PracticeScreen.dart';
 import 'package:running_mate/theme/colors.dart';
 import 'package:running_mate/screens/SetGoalScreen.dart';
 
-class HomeScreen extends StatefulWidget {
+class PracticeScreen extends StatefulWidget {
   @override
-  _HomeScreenState createState() => _HomeScreenState();
+  _PracticeScreenState createState() => _PracticeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _PracticeScreenState extends State<PracticeScreen> {
   String userGoal = '마라톤 대회'; // 마라톤 대회 변수
   int daysLeft = 13; // D-Day 변수
 
@@ -58,7 +57,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         Text(
                           'D - $daysLeft',
                           style: TextStyle(
-                            color: pink,
+                            color: Colors.pink,
                             fontFamily: 'PretandardMedium',
                             fontSize: 20.0,
                             fontWeight: FontWeight.bold,
@@ -73,7 +72,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           style: TextStyle(
                             color: Colors.white,
                             fontFamily: 'PretandardMedium',
-                            fontSize: 18.0,
+                            fontSize: 15.0,
                           ),
                         ),
                       ],
@@ -115,31 +114,68 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
-            Container(
-              margin: EdgeInsets.only(top: 25.0), // 위쪽에 20.0의 여백을 줍니다.
-              width: double.infinity, // 가로 길이를 부모의 가로 길이에 맞춥니다.
-              height: 60.0,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(5.0), // 버튼의 모서리를 둥글게 만듭니다.
-                border: Border.all(color: Colors.grey), // 회색 선으로 버튼 테두리를 만듭니다.
-                color: Colors.white, // 버튼의 배경색을 흰색으로 설정합니다.
-              ),
-              child: TextButton(
-                onPressed: () {
-                  // 버튼을 눌렀을 때 실행되는 함수를 여기에 작성하세요.
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => PracticeScreen(),
+            Row(
+              children: [
+                Container(
+                  height: 65.0,
+                  width: 200.0,
+                  margin: EdgeInsets.fromLTRB(
+                      0.0, 25.0, 0.0, 0.0), // 위쪽에 20.0의 여백을 줍니다.
+                  decoration: BoxDecoration(
+                    borderRadius:
+                        BorderRadius.circular(20.0), // 버튼의 모서리를 둥글게 만듭니다.
+                    color: iris_100, // 버튼의 배경색을 흰색으로 설정합니다.
+                  ),
+                  child: TextButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => SetGoalScreen(),
+                        ),
+                      );
+                    },
+                    child: Text(
+                      '연습 시작하기 >', // 버튼에 표시될 텍스트입니다.
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontFamily: 'PretandardMedium',
+                        fontSize: 18.0,
+                      ), // 버튼 텍스트의 색상을 검정색으로 설정합니다.
                     ),
-                  );
-                },
-                child: Text(
-                  '장거리 달리기 연습하기', // 버튼에 표시될 텍스트입니다.
-                  style: TextStyle(
-                      color: Colors.black), // 버튼 텍스트의 색상을 검정색으로 설정합니다.
+                  ),
                 ),
-              ),
+                SizedBox(width: 20), // 여백 추가,
+                Expanded(
+                  child: Container(
+                    height: 65.0,
+                    margin: EdgeInsets.fromLTRB(0.0, 25.0, 2.0, 0.0),
+                    decoration: BoxDecoration(
+                      borderRadius:
+                          BorderRadius.circular(20.0), // 버튼의 모서리를 둥글게 만듭니다.
+                      color: iris_100, // 버튼의 배경색을 흰색으로 설정합니다.
+                    ),
+                    child: TextButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => SetGoalScreen(),
+                          ),
+                        );
+                      },
+                      child: Text(
+                        '내 기록 >', // 버튼에 표시될 텍스트입니다.
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontFamily: 'PretandardMedium',
+                          fontSize: 18.0,
+                        ), // 버튼 텍스트의 색상을 검정색으로 설정합니다.
+                      ),
+                    ),
+                  ),
+                )
+              ],
             )
           ],
         ),
