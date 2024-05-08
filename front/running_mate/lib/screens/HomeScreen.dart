@@ -87,7 +87,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => SetGoalScreen(),
+                                  builder: (_) => SetGoalScreen(),
                                 ),
                               );
                             },
@@ -130,7 +130,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => PracticeScreen(),
+                      builder: (_) => PracticeScreen(),
                     ),
                   );
                 },

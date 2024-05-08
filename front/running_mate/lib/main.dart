@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/adapters.dart';
+import 'package:running_mate/screens/LoginScreen.dart';
 import 'package:running_mate/screens/SplashScreen.dart';
 
 // 앱의 시작점
@@ -17,7 +18,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: '러닝 메이트',
       // home: SplashScreen(),
-      home: SplashScreen(),
+      home: LoginScreen(),
     );
   }
 }
