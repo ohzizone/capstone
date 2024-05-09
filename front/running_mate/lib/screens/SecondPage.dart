@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/adapters.dart';
 import 'package:running_mate/theme/colors.dart';
 
 class SecondPage extends StatelessWidget {
