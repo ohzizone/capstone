@@ -11,3 +11,5 @@ const gray3 = Color(0xFFAEAEAE);
 const gray4 = Color(0xFF686868);
 
 const pink = Color(0xFFFF88E5);
+
+const errorColor = Color(0xFFEE5D5D);
