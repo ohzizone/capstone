@@ -7,7 +7,7 @@ import 'package:firebase_core/firebase_core.dart';
 // runApp 함수의 괄호 안에는 위젯이 들어간다.
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  Firebase.initializeApp();
+  await Firebase.initializeApp();
   // var box = await Hive.openBox('dataBox');
   runApp(MyApp());
 }

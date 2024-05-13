@@ -1,7 +1,9 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:running_mate/screens/PracticeScreen.dart';
 import 'package:running_mate/theme/colors.dart';
 import 'package:running_mate/screens/SetGoalScreen.dart';
+import 'package:running_mate/screens/LoginScreen.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -9,6 +11,28 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  final _authentication = FirebaseAuth.instance;
+  User? loggedUser;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    getCurrentUser();
+  }
+
+  void getCurrentUser() {
+    try {
+      final user = _authentication.currentUser;
+      if (user != null) {
+        loggedUser = user;
+        print(loggedUser!.email);
+      }
+    } catch (e) {
+      print(e);
+    }
+  }
+
   String userGoal = '마라톤 대회'; // 마라톤 대회 변수
   int daysLeft = 13; // D-Day 변수
 

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:running_mate/screens/HomeScreen.dart';
 import 'package:running_mate/theme/colors.dart';
 import 'dart:ui';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -11,6 +13,9 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   bool isSignUpScreen = true;
+
+  //사용자 등록 및 인증에 사용
+  final _authentication = FirebaseAuth.instance;
 
   final _formKey = GlobalKey<FormState>();
   String userName = '';
@@ -248,6 +253,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   height: 8,
                                 ),
                                 TextFormField(
+                                  keyboardType: TextInputType.emailAddress,
                                   key: ValueKey(2),
                                   validator: (value) {
                                     _validateUserEmail(value!);
@@ -255,6 +261,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                         ? null
                                         : userEmailError;
                                   },
+                                  onChanged: _validateUserEmail,
                                   onSaved: (value) {
                                     userEmail = value!;
                                   },
@@ -298,6 +305,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   onSaved: (value) {
                                     userPassword = value!;
                                   },
+                                  onChanged: _validateUserPassword,
                                   decoration: InputDecoration(
                                       prefixIcon: Icon(
                                         Icons.lock,
@@ -334,6 +342,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               child: Column(
                                 children: [
                                   TextFormField(
+                                    keyboardType: TextInputType.emailAddress,
                                     key: ValueKey(4),
                                     validator: (value) {
                                       _validateUserEmail(value!);
@@ -344,6 +353,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     onSaved: (value) {
                                       userEmail = value!;
                                     },
+                                    onChanged: _validateUserEmail,
                                     decoration: InputDecoration(
                                         prefixIcon: Icon(
                                           Icons.mail,
@@ -375,6 +385,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   TextFormField(
                                     obscureText: true,
                                     key: ValueKey(5),
+                                    onChanged: _validateUserPassword,
                                     validator: (value) {
                                       _validateUserPassword(value!);
                                       return userPasswordError.isEmpty
@@ -431,11 +442,59 @@ class _LoginScreenState extends State<LoginScreen> {
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(50)),
                   child: GestureDetector(
-                    onTap: () {
-                      _tryValidation(); // 유효성 검사 실행
-                      print(userName);
-                      print(userEmail);
-                      print(userPassword);
+                    onTap: () async {
+                      if (isSignUpScreen) {
+                        //_tryValidation();
+
+                        try {
+                          final newUser = await _authentication
+                              .createUserWithEmailAndPassword(
+                            email: userEmail,
+                            password: userPassword,
+                          );
+                          if (newUser != null) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) {
+                                return HomeScreen();
+                              }),
+                            );
+                          }
+                        } catch (e) {
+                          // 에러 출력
+                          print(e);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content:
+                                  Text('Please check your email and password'),
+                              backgroundColor: iris_80,
+                            ),
+                          );
+                        }
+                      }
+
+                      if (!isSignUpScreen) {
+                        //_tryValidation(); // 유효성 검사 실행
+
+                        try {
+                          final newUser =
+                              await _authentication.signInWithEmailAndPassword(
+                            email: userEmail,
+                            password: userPassword,
+                          );
+
+                          if (newUser != null) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) {
+                                return HomeScreen();
+                              }),
+                            );
+                          }
+                        } catch (e) {
+                          print(e);
+                        }
+                      }
                     },
                     child: Container(
                         decoration: BoxDecoration(
