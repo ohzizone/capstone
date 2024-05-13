@@ -16,7 +16,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     getCurrentUser();
   }
@@ -24,6 +23,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void getCurrentUser() {
     try {
       final user = _authentication.currentUser;
+
       if (user != null) {
         loggedUser = user;
         print(loggedUser!.email);

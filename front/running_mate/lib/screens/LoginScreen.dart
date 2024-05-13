@@ -339,6 +339,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         Container(
                             margin: EdgeInsets.only(top: 20),
                             child: Form(
+                              key: _formKey,
                               child: Column(
                                 children: [
                                   TextFormField(
