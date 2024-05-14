@@ -445,7 +445,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: GestureDetector(
                     onTap: () async {
                       if (isSignUpScreen) {
-                        //_tryValidation();
+                        _tryValidation();
 
                         try {
                           final newUser = await _authentication
