@@ -140,8 +140,8 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
             Container(
-              margin: EdgeInsets.only(top: 25.0), // 위쪽에 20.0의 여백을 줍니다.
-              width: double.infinity, // 가로 길이를 부모의 가로 길이에 맞춥니다.
+              margin: EdgeInsets.only(top: 25.0),
+              width: double.infinity,
               height: 60.0,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(5.0), // 버튼의 모서리를 둥글게 만듭니다.
@@ -150,7 +150,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               child: TextButton(
                 onPressed: () {
-                  // 버튼을 눌렀을 때 실행되는 함수를 여기에 작성하세요.
+                  
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -159,9 +159,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   );
                 },
                 child: Text(
-                  '장거리 달리기 연습하기', // 버튼에 표시될 텍스트입니다.
+                  '장거리 달리기 연습하기',
                   style: TextStyle(
-                      color: Colors.black), // 버튼 텍스트의 색상을 검정색으로 설정합니다.
+                      color: Colors.black), 
                 ),
               ),
             )

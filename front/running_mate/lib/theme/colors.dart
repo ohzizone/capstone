@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 //Blue
+const iris_60 = Color(0xFFD6F3FF);
 const iris_80 = Color(0xFFB2E8FF);
 const iris_100 = Color(0xFF4DCAFF);
 
