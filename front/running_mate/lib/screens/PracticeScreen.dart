@@ -1,6 +1,59 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/widgets.dart';
 import 'package:running_mate/theme/colors.dart';
 import 'package:running_mate/screens/SetGoalScreen.dart';
+import 'package:charts_flutter/flutter.dart' as charts;
+
+// Utility functions for formatting
+String formatDate(String dateString) {
+  List<String> parts = dateString.split('-');
+  String month = parts[1];
+  String day = parts[2];
+  return '$month/$day';
+}
+
+String formatDistance(num) {
+  return '${num}km';
+}
+
+String formatTime(String start_time, String end_time) {
+  List<String> start = start_time.split(':');
+  List<String> end = end_time.split(':');
+
+  int startHour = int.parse(start[0]);
+  int startMin = int.parse(start[1]);
+  int startSec = int.parse(start[2]);
+
+  int endHour = int.parse(end[0]);
+  int endMin = int.parse(end[1]);
+  int endSec = int.parse(end[2]);
+
+  int hourDiff = endHour - startHour;
+  int minDiff = endMin - startMin;
+  int secDiff = endSec - startSec;
+
+  if (secDiff < 0) {
+    secDiff += 60;
+    minDiff -= 1;
+  }
+
+  if (minDiff < 0) {
+    minDiff += 60;
+    hourDiff -= 1;
+  }
+
+  String result = '';
+  if (hourDiff > 0) {
+    result += '$hourDiff h ';
+  }
+  if (minDiff > 0) {
+    result += '$minDiff m ';
+  }
+  result += '$secDiff s';
+
+  return result.trim();
+}
 
 class PracticeScreen extends StatefulWidget {
   @override
@@ -10,6 +63,10 @@ class PracticeScreen extends StatefulWidget {
 class _PracticeScreenState extends State<PracticeScreen> {
   String userGoal = '마라톤 대회'; // 마라톤 대회 변수
   int daysLeft = 13; // D-Day 변수
+
+  final int price = 2000;
+
+  bool showSpinner = false;
 
   @override
   Widget build(BuildContext context) {
@@ -120,7 +177,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
                   height: 65.0,
                   width: 200.0,
                   margin: EdgeInsets.fromLTRB(
-                      0.0, 25.0, 0.0, 0.0), // 위쪽에 20.0의 여백을 줍니다.
+                      0.0, 25.0, 0.0, 0.0), // 위쪽에 25.0의 여백을 줍니다.
                   decoration: BoxDecoration(
                     borderRadius:
                         BorderRadius.circular(20.0), // 버튼의 모서리를 둥글게 만듭니다.
@@ -136,24 +193,23 @@ class _PracticeScreenState extends State<PracticeScreen> {
                       );
                     },
                     child: Text(
-                      '연습 시작하기 >', // 버튼에 표시될 텍스트입니다.
+                      '연습 시작하기 >',
                       style: TextStyle(
                         color: Colors.white,
                         fontFamily: 'PretandardMedium',
                         fontSize: 18.0,
-                      ), // 버튼 텍스트의 색상을 검정색으로 설정합니다.
+                      ),
                     ),
                   ),
                 ),
-                SizedBox(width: 20), // 여백 추가,
+                SizedBox(width: 20), // 여백 추가
                 Expanded(
                   child: Container(
                     height: 65.0,
                     margin: EdgeInsets.fromLTRB(0.0, 25.0, 2.0, 0.0),
                     decoration: BoxDecoration(
-                      borderRadius:
-                          BorderRadius.circular(20.0), // 버튼의 모서리를 둥글게 만듭니다.
-                      color: iris_100, // 버튼의 배경색을 흰색으로 설정합니다.
+                      borderRadius: BorderRadius.circular(20.0),
+                      color: iris_100,
                     ),
                     child: TextButton(
                       onPressed: () {
@@ -170,16 +226,148 @@ class _PracticeScreenState extends State<PracticeScreen> {
                           color: Colors.white,
                           fontFamily: 'PretandardMedium',
                           fontSize: 18.0,
-                        ), // 버튼 텍스트의 색상을 검정색으로 설정합니다.
+                        ),
                       ),
                     ),
                   ),
-                )
+                ),
               ],
+            ),
+            Container(
+              child: StreamBuilder(
+                stream: FirebaseFirestore.instance
+                    .collection('/running record/qLGojNsNczqZF0UI95Im/record')
+                    .orderBy('date', descending: true) // 날짜 순으로 정렬
+                    .snapshots(),
+                builder: (BuildContext context,
+                    AsyncSnapshot<QuerySnapshot<Map<String, dynamic>>>
+                        snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  }
+
+                  final docs = snapshot.data!.docs;
+                  //리스트뷰
+                  return SingleChildScrollView(
+                    scrollDirection: Axis.horizontal, // 가로 방향 스크롤
+                    child: Row(
+                      children: docs.map((doc) {
+                        return Container(
+                          child: Column(
+                            children: [
+                              Text(
+                                formatDate(doc['date']),
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontFamily: 'PretandardMedium',
+                                  fontSize: 17.0,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text(
+                                formatDistance(doc['distance']),
+                                style: TextStyle(
+                                  color: gray4,
+                                  fontFamily: 'PretandardMedium',
+                                  fontSize: 13.0,
+                                ),
+                              ),
+                              Text(
+                                formatTime(doc['start_time'], doc['end_time']),
+                                style: TextStyle(
+                                  color: gray4,
+                                  fontFamily: 'PretandardMedium',
+                                  fontSize: 13.0,
+                                ),
+                              ),
+                            ],
+                          ),
+                          height: 85.0,
+                          width: 85.0,
+                          margin: EdgeInsets.fromLTRB(
+                              8.0, 25.0, 8.0, 0.0), // 위쪽에 25.0의 여백을 0.0으로 수정
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(5.0),
+                            color: iris_60,
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  );
+                },
+              ),
+            ),
+            Container(
+              height: 200,
+              child: StreamBuilder(
+                stream: FirebaseFirestore.instance
+                    .collection('/running record/qLGojNsNczqZF0UI95Im/record')
+                    .orderBy('date', descending: true) // 날짜 순으로 정렬
+                    .snapshots(),
+                builder: (BuildContext context,
+                    AsyncSnapshot<QuerySnapshot<Map<String, dynamic>>>
+                        snapshot) {
+                  if (!snapshot.hasData) return CircularProgressIndicator();
+
+                  List<charts.Series<PaceData, DateTime>> series = [
+                    charts.Series<PaceData, DateTime>(
+                      id: 'Running Pace',
+                      colorFn: (_, __) =>
+                          charts.MaterialPalette.blue.shadeDefault,
+                      domainFn: (PaceData paces, _) => paces.date,
+                      measureFn: (PaceData paces, _) =>
+                          double.parse(paces.pace), // String을 double로 변환
+                      data: snapshot.data!.docs
+                          .map((doc) => PaceData(DateTime.parse(doc['date']),
+                              doc['pace'])) // String으로 pace 필드를 받아옴
+                          .toList(),
+                    )
+                  ];
+
+                  // 동그라미 마크와 텍스트를 생성하는 함수
+                  List<charts.Series> _createMarkerSeries(List<PaceData> data) {
+                    return [
+                      charts.Series<PaceData, DateTime>(
+                        id: 'Pace Markers',
+                        colorFn: (_, __) =>
+                            charts.MaterialPalette.blue.shadeDefault,
+                        domainFn: (PaceData paces, _) => paces.date,
+                        measureFn: (PaceData paces, _) =>
+                            double.parse(paces.pace),
+                        data: data,
+                        // 동그라미 마크 생성
+                        radiusPxFn: (_, __) => 5, // 마크의 크기 설정
+                        // 마크 위에 텍스트 생성
+                        labelAccessorFn: (PaceData paces, _) =>
+                            'Pace: ${paces.pace}',
+                        // 텍스트 스타일 설정
+                        insideLabelStyleAccessorFn: (PaceData paces, _) =>
+                            charts.TextStyleSpec(fontSize: 12),
+                      ),
+                    ];
+                  }
+
+                  return charts.TimeSeriesChart(
+                    series,
+                    animate: true,
+                    dateTimeFactory: const charts.LocalDateTimeFactory(),
+                  );
+                },
+              ),
             )
           ],
         ),
       ),
     );
   }
+}
+
+// Define the PaceData class
+class PaceData {
+  final DateTime date;
+  final String pace;
+
+  PaceData(this.date, this.pace);
 }
