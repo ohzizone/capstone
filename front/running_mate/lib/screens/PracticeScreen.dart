@@ -5,6 +5,9 @@ import 'package:running_mate/theme/colors.dart';
 import 'package:running_mate/screens/SetGoalScreen.dart';
 import 'package:running_mate/screens/TimerPage.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
 
 // Utility functions for formatting
 String formatDate(String dateString) {
@@ -62,12 +65,60 @@ class PracticeScreen extends StatefulWidget {
 }
 
 class _PracticeScreenState extends State<PracticeScreen> {
-  String userGoal = '마라톤 대회'; // 마라톤 대회 변수
-  int daysLeft = 13; // D-Day 변수
+  String userGoal = ''; // 마라톤 대회 변수
+  String daysLeft = ''; // D-Day 변수
+
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   final int price = 2000;
 
   bool showSpinner = false;
+
+  String calculateDaysDifference(String goalDate) {
+    final DateFormat dateFormat = DateFormat('yyyy-MM-dd');
+
+    DateTime currentDate = DateTime.now();
+    String currentDateString = dateFormat.format(currentDate);
+
+    // 문자열을 DateTime 객체로 변환
+    DateTime targetDate = dateFormat.parse(goalDate);
+    currentDate = dateFormat.parse(currentDateString);
+
+    // 날짜 차이 계산
+    Duration difference = targetDate.difference(currentDate);
+    int daysDifference = difference.inDays;
+
+    if (daysDifference == 0) return 'day';
+
+    return daysDifference.toString();
+  }
+
+  void _loadGoal() async {
+    User? user = _auth.currentUser;
+    if (user != null) {
+      DocumentReference goalRef = _firestore
+          .collection('goals')
+          .doc(user.uid)
+          .collection('goal')
+          .doc('rVyj0NS9aGSYscPMxVjC');
+      DocumentSnapshot goalSnapshot = await goalRef.get();
+      if (goalSnapshot.exists) {
+        setState(() {
+          userGoal = goalSnapshot['goal'];
+
+          //_selectedDate = (goalSnapshot['date'] as Timestamp).toDate();
+          daysLeft = goalSnapshot['date'];
+          daysLeft = calculateDaysDifference(daysLeft);
+        });
+      }
+    }
+  }
+
+  void initState() {
+    super.initState();
+    _loadGoal();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -115,7 +166,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
                         Text(
                           'D - $daysLeft',
                           style: TextStyle(
-                            color: Colors.pink,
+                            color: pink,
                             fontFamily: 'PretandardMedium',
                             fontSize: 20.0,
                             fontWeight: FontWeight.bold,
@@ -287,8 +338,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
                           ),
                           height: 85.0,
                           width: 85.0,
-                          margin: EdgeInsets.fromLTRB(
-                              8.0, 25.0, 8.0, 0.0), // 위쪽에 25.0의 여백을 0.0으로 수정
+                          margin: EdgeInsets.fromLTRB(8.0, 25.0, 8.0, 0.0),
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(5.0),
                             color: iris_60,
