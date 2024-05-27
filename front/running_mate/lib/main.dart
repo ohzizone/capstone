@@ -3,6 +3,7 @@ import 'package:running_mate/screens/LoginScreen.dart';
 import 'package:running_mate/screens/SplashScreen.dart';
 import 'package:firebase_core/firebase_core.dart';
 
+//
 // 앱의 시작점
 // runApp 함수의 괄호 안에는 위젯이 들어간다.
 void main() async {
