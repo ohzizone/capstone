@@ -2,6 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:running_mate/theme/colors.dart';
 import 'package:running_mate/screens/HomeScreen.dart';
+import 'package:running_mate/screens/PracticeScreen.dart';
+import 'package:running_mate/screens/LoginScreen.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class SplashScreen extends StatefulWidget {
   @override
@@ -10,19 +15,30 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
-  List<SystemUiOverlay>? _previousSystemOverlays; // 이전 시스템 오버레이 스타일을 저장할 변수
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  void _checkLoginStatus() async {
+    await Future.delayed(Duration(seconds: 5)); // 5초 대기
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      // 로그인된 상태
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => PracticeScreen()),
+      );
+    } else {
+      // 로그인되지 않은 상태
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => LoginScreen()),
+      );
+    }
+  }
 
   @override
   void initState() {
     super.initState();
+    _checkLoginStatus();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive); // 전체화면 모드로 설정
-
-    // 5초 후에 FirstPage로 이동
-    Future.delayed(Duration(seconds: 5), () {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => HomeScreen()),
-      );
-    });
   }
 
   @override
