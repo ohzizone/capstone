@@ -3,10 +3,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/widgets.dart';
 import 'package:running_mate/theme/colors.dart';
 import 'package:running_mate/screens/SetGoalScreen.dart';
+import 'package:running_mate/screens/MyRecordScreen.dart';
 import 'package:running_mate/screens/TimerPage.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+
 import 'package:intl/intl.dart';
 
 // Utility functions for formatting
@@ -268,7 +270,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => SetGoalScreen(),
+                            builder: (context) => MyRecordScreen(),
                           ),
                         );
                       },
