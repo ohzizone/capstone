@@ -1,7 +1,12 @@
 import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter/widgets.dart';
 import 'package:running_mate/theme/colors.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
 
 class TimerPage extends StatefulWidget {
   @override
@@ -14,45 +19,99 @@ class _TimerPageState extends State<TimerPage> {
   bool isRunning = false;
   Timer? timer;
   int seconds = 0;
+  final DateFormat dateFormat = DateFormat('yyyy-MM-dd');
+
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   void updateGoal(String newDistance, String newTime) {
-    setState(() {
-      distance = newDistance;
-      time = newTime;
-    });
+    if (mounted) {
+      setState(() {
+        distance = newDistance;
+        time = newTime;
+      });
+    }
+  }
+
+  void _saveRecord() async {
+    User? user = _auth.currentUser;
+    if (user != null) {
+      DocumentReference recordRef = _firestore
+          .collection('running record')
+          .doc(user.uid)
+          .collection('record')
+          .doc();
+      await recordRef.set({
+        'date': dateFormat.parse(DateTime.now().toString()),
+        'distance': distance,
+        'start_time': time,
+        'end_time': time,
+        'pace': '6.48'
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('기록이 저장되었습니다.')),
+        );
+      }
+    }
   }
 
   void startTimer() {
     timer = Timer.periodic(Duration(seconds: 1), (timer) {
+      if (mounted) {
+        setState(() {
+          seconds++;
+        });
+      }
+    });
+    if (mounted) {
       setState(() {
-        seconds++;
+        isRunning = true;
       });
-    });
-    setState(() {
-      isRunning = true;
-    });
+    }
   }
 
   void stopTimer() {
+    _saveRecord();
     timer?.cancel();
-    setState(() {
-      isRunning = false;
-    });
+    if (mounted) {
+      setState(() {
+        isRunning = false;
+      });
+    }
   }
 
   void resetTimer() {
     timer?.cancel();
-    setState(() {
-      seconds = 0;
-      isRunning = false;
-    });
+    if (mounted) {
+      setState(() {
+        seconds = 0;
+        isRunning = false;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    timer?.cancel();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      //appBar: CustomAppBar(),
+      appBar: AppBar(
+        title: Text(
+          '기록 측정하기',
+          style: TextStyle(
+            color: gray4,
+            fontFamily: 'PretandardMedium',
+            fontSize: 20.0,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
       body: Column(
         children: <Widget>[
           TimerRecords(distance: distance, time: time, updateGoal: updateGoal),
@@ -67,21 +126,6 @@ class _TimerPageState extends State<TimerPage> {
     );
   }
 }
-
-// class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
-//   @override
-//   Widget build(BuildContext context) {
-//     return AppBar(
-//       backgroundColor: Colors.white,
-//       elevation: 0,
-//       leading: const Icon(Icons.arrow_back, color: Colors.black),
-//       actions: const [Icon(Icons.more_vert, color: Colors.black)],
-//     );
-//   }
-
-//   @override
-//   Size get preferredSize => Size.fromHeight(kToolbarHeight);
-// }
 
 class TimerRecords extends StatelessWidget {
   final String distance;
@@ -99,7 +143,7 @@ class TimerRecords extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      margin: const EdgeInsets.fromLTRB(20, 50, 20, 10),
+      margin: const EdgeInsets.fromLTRB(20, 10, 20, 10),
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
       decoration: BoxDecoration(
         color: iris_80,
@@ -119,7 +163,6 @@ class TimerRecords extends StatelessWidget {
             text: TextSpan(
               style: const TextStyle(fontSize: 16, color: Colors.white),
               children: <TextSpan>[
-                //const TextSpan(text: '현재 목표: '),
                 TextSpan(
                   text: '${distance}m ${time}초',
                   style: const TextStyle(
@@ -184,7 +227,6 @@ class TimerDisplay extends StatelessWidget {
 
 class TimerControls extends StatelessWidget {
   final bool isRunning;
-  // 함수 타입을 'void Function()'으로 변경
   final void Function() startTimer;
   final void Function() stopTimer;
   final void Function() resetTimer;
@@ -200,64 +242,73 @@ class TimerControls extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.fromLTRB(0, 0, 0, 35),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           if (!isRunning)
-            ElevatedButton(
-              onPressed: startTimer, // 함수가 이제 적절한 타입으로 전달됩니다.
-              child: const Text(
-                '시작',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontFamily: 'PretandardMedium',
-                  fontSize: 15.0,
-                  fontWeight: FontWeight.bold,
+            Padding(
+              padding: EdgeInsets.fromLTRB(0, 0, 0, 40),
+              child: ElevatedButton(
+                onPressed: startTimer,
+                child: const Text(
+                  '시작',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontFamily: 'PretandardMedium',
+                    fontSize: 15.0,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: iris_100,
-                foregroundColor: Colors.white,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 50, vertical: 20),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: iris_100,
+                  foregroundColor: Colors.white,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 50, vertical: 20),
+                ),
               ),
             )
           else ...[
-            ElevatedButton(
-              onPressed: stopTimer, // 함수가 이제 적절한 타입으로 전달됩니다.
-              child: const Text(
-                '중지',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontFamily: 'PretandardMedium',
-                  fontSize: 15.0,
-                  fontWeight: FontWeight.bold,
+            Padding(
+              padding: EdgeInsets.fromLTRB(0, 0, 0, 40),
+              child: ElevatedButton(
+                onPressed: stopTimer,
+                child: const Text(
+                  '중지',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontFamily: 'PretandardMedium',
+                    fontSize: 15.0,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: iris_100,
-                foregroundColor: Colors.white,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 50, vertical: 20),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: iris_100,
+                  foregroundColor: Colors.white,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 50, vertical: 20),
+                ),
               ),
             ),
-            ElevatedButton(
-              onPressed: resetTimer, // 함수가 이제 적절한 타입으로 전달됩니다.
-              child: const Text(
-                '취소',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontFamily: 'PretandardMedium',
-                  fontSize: 15.0,
-                  fontWeight: FontWeight.bold,
+            Padding(
+              padding: EdgeInsets.fromLTRB(0, 0, 0, 40),
+              child: ElevatedButton(
+                onPressed: resetTimer,
+                child: const Text(
+                  '취소',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontFamily: 'PretandardMedium',
+                    fontSize: 15.0,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: iris_100,
-                foregroundColor: Colors.white,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 50, vertical: 20),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: iris_100,
+                  foregroundColor: Colors.white,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 50, vertical: 20),
+                ),
               ),
             ),
           ]
@@ -306,44 +357,91 @@ class SetGoalButton extends StatelessWidget {
       context: context,
       builder: (context) {
         return Dialog(
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text("목표 설정하기",
-                    style:
-                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 20),
-                TextField(
-                  onChanged: (value) => localDistance = value,
-                  decoration: const InputDecoration(
-                    labelText: "거리 (m)",
-                    border: OutlineInputBorder(),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12.0),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text("목표 설정하기",
+                      style: TextStyle(
+                          fontFamily: 'PretandardMedium',
+                          color: gray4,
+                          fontSize: 20.0,
+                          fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 20),
+                  TextField(
+                    onChanged: (value) => localDistance = value,
+                    decoration: InputDecoration(
+                      labelText: "거리 (m)",
+                      labelStyle: TextStyle(
+                        fontFamily: 'PretandardMedium',
+                        color: gray4,
+                        fontSize: 20,
+                      ),
+                      hintText: '목표 거리를 입력해주세요',
+                      border: OutlineInputBorder(),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                          color: iris_100,
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                          color: iris_80,
+                        ),
+                      ),
+                    ),
+                    keyboardType: TextInputType.number,
                   ),
-                  keyboardType: TextInputType.number,
-                ),
-                const SizedBox(height: 20),
-                TextField(
-                  onChanged: (value) => localTime = value,
-                  decoration: const InputDecoration(
-                    labelText: "시간 (초)",
-                    border: OutlineInputBorder(),
+                  const SizedBox(height: 20),
+                  TextField(
+                    onChanged: (value) => localTime = value,
+                    decoration: InputDecoration(
+                      labelText: "시간 (초)",
+                      hintText: '목표 시간을 입력해주세요',
+                      labelStyle: TextStyle(
+                        fontFamily: 'PretandardMedium',
+                        color: gray4,
+                        fontSize: 20,
+                      ),
+                      border: OutlineInputBorder(),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                          color: iris_100,
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                          color: iris_80,
+                        ),
+                      ),
+                    ),
+                    keyboardType: TextInputType.number,
                   ),
-                  keyboardType: TextInputType.number,
-                ),
-                const SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    updateGoal(localDistance, localTime);
-                  },
-                  child: const Text("완료"),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      updateGoal(localDistance, localTime);
+                    },
+                    child: const Text(
+                      "완료",
+                      style: TextStyle(
+                        fontFamily: 'PretandardMedium',
+                        color: Colors.white,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: iris_100,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         );
