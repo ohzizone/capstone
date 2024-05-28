@@ -30,6 +30,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+    
+  intl: ^0.17.0
 
   modal_progress_hud_nsn: ^0.5.1
   charts_flutter: ^0.12.0
@@ -47,6 +49,10 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+
+  provider: ^6.1.2
+  table_calendar:  ^3.0.8
+
 
   hive_generator: ^2.0.1
   build_runner: ^2.4.6

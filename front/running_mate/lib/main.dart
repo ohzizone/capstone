@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:running_mate/screens/LoginScreen.dart';
 import 'package:running_mate/screens/SplashScreen.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 //
 // 앱의 시작점
@@ -9,6 +10,8 @@ import 'package:firebase_core/firebase_core.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+
+  await initializeDateFormatting();
   // var box = await Hive.openBox('dataBox');
   runApp(MyApp());
 }
@@ -20,7 +23,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: '러닝 메이트',
       // home: SplashScreen(),
-      home: LoginScreen(),
+      home: SplashScreen(),
     );
   }
 }
