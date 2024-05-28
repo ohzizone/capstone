@@ -19,7 +19,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: '러닝 메이트',
       // home: SplashScreen(),
-      home: LoginScreen(),
+      home: SplashScreen(),
     );
   }
 }
