@@ -4,6 +4,7 @@ import 'package:running_mate/screens/PracticeScreen.dart';
 import 'package:running_mate/theme/colors.dart';
 import 'package:running_mate/screens/SetGoalScreen.dart';
 import 'package:running_mate/screens/LoginScreen.dart';
+import 'package:running_mate/screens/FlutterBlueApp.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -177,7 +178,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => PracticeScreen(),
+                      builder: (_) => FlutterBlueApp(),
                     ),
                   );
                 },
