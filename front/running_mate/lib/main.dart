@@ -4,7 +4,7 @@ import 'package:running_mate/screens/SplashScreen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
-//
+// 주석 추가
 // 앱의 시작점
 // runApp 함수의 괄호 안에는 위젯이 들어간다.
 void main() async {
