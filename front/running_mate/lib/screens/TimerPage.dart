@@ -9,6 +9,7 @@ class TimerPage extends StatefulWidget {
   _TimerPageState createState() => _TimerPageState();
 }
 
+//
 class _TimerPageState extends State<TimerPage>
     with SingleTickerProviderStateMixin {
   String distance = "0";

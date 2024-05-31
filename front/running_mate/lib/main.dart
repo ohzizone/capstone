@@ -6,6 +6,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'package:running_mate/screens/TimerPage.dart'; //
 
+// 추가된 부분
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
