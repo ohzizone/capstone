@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:running_mate/models/MyRecord.dart';
-import 'package:running_mate/theme/colors.dart';
+import 'package:running_mate/src/models/MyRecord.dart';
+import 'package:running_mate/src/theme/colors.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';

@@ -1,10 +1,67 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:running_mate/screens/PracticeScreen.dart';
-import 'package:running_mate/theme/colors.dart';
-import 'package:running_mate/screens/SetGoalScreen.dart';
-import 'package:running_mate/screens/LoginScreen.dart';
-import 'package:running_mate/screens/FlutterBlueApp.dart';
+import 'package:running_mate/src/screens/PracticeScreen.dart';
+import 'package:running_mate/src/theme/colors.dart';
+import 'package:running_mate/src/screens/SetGoalScreen.dart';
+import 'package:running_mate/src/screens/LoginScreen.dart';
+import 'package:running_mate/src/screens/FlutterBlueApp.dart';
+import 'package:running_mate/src/screens/BluetoothScreen.dart';
+import 'package:running_mate/src/screens/BlutoothScreenTest.dart';
+import 'package:charts_flutter/flutter.dart' as charts;
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/widgets.dart';
+import 'package:intl/intl.dart';
+
+// Utility functions for formatting
+String formatDate(String dateString) {
+  List<String> parts = dateString.split('-');
+  String month = parts[1];
+  String day = parts[2];
+  return '$month/$day';
+}
+
+String formatDistance(num) {
+  return '${num}km';
+}
+
+String formatTime(String start_time, String end_time) {
+  List<String> start = start_time.split(':');
+  List<String> end = end_time.split(':');
+
+  int startHour = int.parse(start[0]);
+  int startMin = int.parse(start[1]);
+  int startSec = int.parse(start[2]);
+
+  int endHour = int.parse(end[0]);
+  int endMin = int.parse(end[1]);
+  int endSec = int.parse(end[2]);
+
+  int hourDiff = endHour - startHour;
+  int minDiff = endMin - startMin;
+  int secDiff = endSec - startSec;
+
+  if (secDiff < 0) {
+    secDiff += 60;
+    minDiff -= 1;
+  }
+
+  if (minDiff < 0) {
+    minDiff += 60;
+    hourDiff -= 1;
+  }
+
+  String result = '';
+  if (hourDiff > 0) {
+    result += '$hourDiff h ';
+  }
+  if (minDiff > 0) {
+    result += '$minDiff m ';
+  }
+  result += '$secDiff s';
+
+  return result.trim();
+}
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -12,30 +69,61 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final _authentication = FirebaseAuth.instance;
-  User? loggedUser;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  @override
-  void initState() {
-    super.initState();
-    getCurrentUser();
-  }
+  String userGoal = ''; // 마라톤 대회 변수
+  String daysLeft = ''; // D-Day 변수
 
-  void getCurrentUser() {
-    try {
-      final user = _authentication.currentUser;
+  String calculateDaysDifference(String goalDate) {
+    final DateFormat dateFormat = DateFormat('yyyy-MM-dd');
 
-      if (user != null) {
-        loggedUser = user;
-        print(loggedUser!.email);
-      }
-    } catch (e) {
-      print(e);
+    DateTime currentDate = DateTime.now();
+    String currentDateString = dateFormat.format(currentDate);
+
+    DateTime targetDate = dateFormat.parse(goalDate);
+    currentDate = dateFormat.parse(currentDateString);
+
+    Duration difference = targetDate.difference(currentDate);
+    int daysDifference = difference.inDays;
+
+    print('daysDifference');
+    print(daysDifference);
+
+    if (daysDifference == 0) {
+      return 'D - day';
+    } else if (daysDifference < 0) {
+      return 'D + ${(-daysDifference).toString()}';
+    } else {
+      return 'D - ${daysDifference.toString()}';
     }
   }
 
-  String userGoal = '마라톤 대회'; // 마라톤 대회 변수
-  int daysLeft = 13; // D-Day 변수
+  void _loadGoal() async {
+    User? user = _auth.currentUser;
+    if (user != null) {
+      DocumentReference goalRef = _firestore
+          .collection('goals')
+          .doc(user.uid)
+          .collection('goal')
+          .doc('rVyj0NS9aGSYscPMxVjC');
+      DocumentSnapshot goalSnapshot = await goalRef.get();
+      if (goalSnapshot.exists) {
+        setState(() {
+          userGoal = goalSnapshot['goal'];
+
+          //_selectedDate = (goalSnapshot['date'] as Timestamp).toDate();
+          daysLeft = goalSnapshot['date'];
+          daysLeft = calculateDaysDifference(daysLeft);
+        });
+      }
+    }
+  }
+
+  void initState() {
+    super.initState();
+    _loadGoal();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -81,7 +169,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     Row(
                       children: [
                         Text(
-                          'D - $daysLeft',
+                          '$daysLeft',
                           style: TextStyle(
                             color: pink,
                             fontFamily: 'PretandardMedium',
@@ -98,7 +186,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           style: TextStyle(
                             color: Colors.white,
                             fontFamily: 'PretandardMedium',
-                            fontSize: 18.0,
+                            fontSize: 15.0,
                           ),
                         ),
                       ],
@@ -112,7 +200,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (_) => SetGoalScreen(),
+                                  builder: (context) => SetGoalScreen(),
                                 ),
                               );
                             },
@@ -178,7 +266,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => FlutterBlueApp(),
+                      //builder: (_) => BluetoothScreen(),
+                      builder: (_) => BluetoothScreen(),
                     ),
                   );
                 },

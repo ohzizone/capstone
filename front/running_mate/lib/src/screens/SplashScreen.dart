@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:running_mate/theme/colors.dart';
-import 'package:running_mate/screens/HomeScreen.dart';
-import 'package:running_mate/screens/PracticeScreen.dart';
-import 'package:running_mate/screens/LoginScreen.dart';
+import 'package:running_mate/src/theme/colors.dart';
+import 'package:running_mate/src/screens/HomeScreen.dart';
+import 'package:running_mate/src/screens/PracticeScreen.dart';
+import 'package:running_mate/src/screens/LoginScreen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';

@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';
-import 'package:running_mate/theme/colors.dart';
-import 'package:running_mate/service/practiceService.dart';
+import 'package:running_mate/src/theme/colors.dart';
 
 String formatDate(String dateString) {
   List<String> parts = dateString.split('-');
@@ -84,7 +83,6 @@ class _CounterState extends State<Counter> {
                 child: CircularProgressIndicator(),
               );
             }
-
             final docs = snapshot.data!.docs;
             return SingleChildScrollView(
               // SingleChildScrollView를 사용하여 Row의 내용이 화면을 벗어날 때 스크롤 가능하도록 합니다.

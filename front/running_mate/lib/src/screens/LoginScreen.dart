@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:running_mate/screens/HomeScreen.dart';
-import 'package:running_mate/screens/Counter.dart';
-import 'package:running_mate/screens/PracticeScreen.dart';
-import 'package:running_mate/theme/colors.dart';
+import 'package:running_mate/src/screens/HomeScreen.dart';
+import 'package:running_mate/src/screens/Counter.dart';
+import 'package:running_mate/src/screens/PracticeScreen.dart';
+import 'package:running_mate/src/theme/colors.dart';
 import 'dart:ui';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:modal_progress_hud_nsn/modal_progress_hud_nsn.dart';

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:running_mate/theme/colors.dart';
+import 'package:running_mate/src/theme/colors.dart';
 
 class SecondPage extends StatelessWidget {
   @override

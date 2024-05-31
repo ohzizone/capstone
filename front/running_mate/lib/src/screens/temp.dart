@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:running_mate/theme/colors.dart';
+import 'package:running_mate/src/theme/colors.dart';
 
-import 'package:running_mate/screens/SetGoalScreen.dart';
+import 'package:running_mate/src/screens/SetGoalScreen.dart';
 
 class HomeScreen extends StatelessWidget {
   @override
