@@ -22,5 +22,7 @@
   <string>1.0</string>
   <key>MinimumOSVersion</key>
   <string>12.0</string>
+  <key>NSBluetoothAlwaysUsageDescription</key>
+  <string>This app needs access to Bluetooth to function properly.</string>
 </dict>
 </plist>

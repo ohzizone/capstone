@@ -4,6 +4,7 @@ import 'package:running_mate/screens/PracticeScreen.dart';
 import 'package:running_mate/theme/colors.dart';
 import 'package:running_mate/screens/SetGoalScreen.dart';
 import 'package:running_mate/screens/LoginScreen.dart';
+import 'package:running_mate/screens/FlutterBlueApp.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -150,7 +151,6 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               child: TextButton(
                 onPressed: () {
-                  
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -160,8 +160,31 @@ class _HomeScreenState extends State<HomeScreen> {
                 },
                 child: Text(
                   '장거리 달리기 연습하기',
-                  style: TextStyle(
-                      color: Colors.black), 
+                  style: TextStyle(color: Colors.black),
+                ),
+              ),
+            ),
+            Container(
+              margin: EdgeInsets.only(top: 25.0),
+              width: double.infinity,
+              height: 60.0,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(5.0), // 버튼의 모서리를 둥글게 만듭니다.
+                border: Border.all(color: Colors.grey), // 회색 선으로 버튼 테두리를 만듭니다.
+                color: Colors.white, // 버튼의 배경색을 흰색으로 설정합니다.
+              ),
+              child: TextButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => FlutterBlueApp(),
+                    ),
+                  );
+                },
+                child: Text(
+                  '블루투스 연결하기',
+                  style: TextStyle(color: Colors.black),
                 ),
               ),
             )

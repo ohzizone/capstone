@@ -83,17 +83,22 @@ class _PracticeScreenState extends State<PracticeScreen> {
     DateTime currentDate = DateTime.now();
     String currentDateString = dateFormat.format(currentDate);
 
-    // 문자열을 DateTime 객체로 변환
     DateTime targetDate = dateFormat.parse(goalDate);
     currentDate = dateFormat.parse(currentDateString);
 
-    // 날짜 차이 계산
     Duration difference = targetDate.difference(currentDate);
     int daysDifference = difference.inDays;
 
-    if (daysDifference == 0) return 'day';
+    print('daysDifference');
+    print(daysDifference);
 
-    return daysDifference.toString();
+    if (daysDifference == 0) {
+      return 'D - day';
+    } else if (daysDifference < 0) {
+      return 'D + ${(-daysDifference).toString()}';
+    } else {
+      return 'D - ${daysDifference.toString()}';
+    }
   }
 
   void _loadGoal() async {
@@ -166,7 +171,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
                     Row(
                       children: [
                         Text(
-                          'D - $daysLeft',
+                          '$daysLeft',
                           style: TextStyle(
                             color: pink,
                             fontFamily: 'PretandardMedium',

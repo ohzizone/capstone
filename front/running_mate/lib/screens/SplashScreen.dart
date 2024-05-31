@@ -24,7 +24,7 @@ class _SplashScreenState extends State<SplashScreen>
     if (user != null) {
       // 로그인된 상태
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => PracticeScreen()),
+        MaterialPageRoute(builder: (_) => HomeScreen()),
       );
     } else {
       // 로그인되지 않은 상태
