@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:running_mate/screens/LoginScreen.dart';
-import 'package:running_mate/screens/SplashScreen.dart';
+import 'package:running_mate/src/screens/LoginScreen.dart';
+import 'package:running_mate/src/screens/SplashScreen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
