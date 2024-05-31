@@ -12,15 +12,18 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 
 // Utility functions for formatting
-String formatDate(String dateString) {
+String formatDate(Timestamp timestamp) {
+  String dateString = '2024-05-22';
   List<String> parts = dateString.split('-');
   String month = parts[1];
   String day = parts[2];
   return '$month/$day';
 }
 
-String formatDistance(num) {
-  return '${num}km';
+String formatDistance(String metersString) {
+  double meters = double.tryParse(metersString) ?? 0.0;
+  double kilometers = meters / 1000.0;
+  return '${kilometers.toStringAsFixed(1)}km';
 }
 
 String formatTime(String start_time, String end_time) {
@@ -69,6 +72,7 @@ class PracticeScreen extends StatefulWidget {
 class _PracticeScreenState extends State<PracticeScreen> {
   String userGoal = ''; // 마라톤 대회 변수
   String daysLeft = ''; // D-Day 변수
+  String userId = ''; // D-Day 변수
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -104,6 +108,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
   void _loadGoal() async {
     User? user = _auth.currentUser;
     if (user != null) {
+      userId = user.uid;
       DocumentReference goalRef = _firestore
           .collection('goals')
           .doc(user.uid)
@@ -295,7 +300,9 @@ class _PracticeScreenState extends State<PracticeScreen> {
             Container(
               child: StreamBuilder(
                 stream: FirebaseFirestore.instance
-                    .collection('/running record/qLGojNsNczqZF0UI95Im/record')
+                    .collection('running record')
+                    .doc(userId)
+                    .collection('record')
                     .orderBy('date', descending: true) // 날짜 순으로 정렬
                     .snapshots(),
                 builder: (BuildContext context,
