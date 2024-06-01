@@ -15,7 +15,7 @@ class MyRecordScreen extends StatefulWidget {
 }
 
 class _MyRecordScreenState extends State<MyRecordScreen> {
-  CalendarFormat _calendarFormat = CalendarFormat.month;
+  CalendarFormat _calendarFormat = CalendarFormat.twoWeeks;
 
   DateTime focusedDay = DateTime.now();
   DateTime? selectedDay;
