@@ -8,7 +8,6 @@ import 'dart:async';
 import 'dart:developer';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
 
-// 추가된 부분
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
