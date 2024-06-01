@@ -7,7 +7,6 @@ import 'package:running_mate/src/screens/LoginScreen.dart';
 import 'package:running_mate/src/screens/FlutterBlueApp.dart';
 import 'package:running_mate/src/screens/BluetoothScreen.dart';
 import 'package:running_mate/src/screens/BlutoothScreenTest.dart';
-import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/widgets.dart';

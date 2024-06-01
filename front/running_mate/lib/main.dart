@@ -3,8 +3,10 @@ import 'package:running_mate/src/screens/LoginScreen.dart';
 import 'package:running_mate/src/screens/SplashScreen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:running_mate/src/screens/TimerPage.dart';
+import 'dart:async';
+import 'dart:developer';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
-import 'package:running_mate/screens/TimerPage.dart'; //
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

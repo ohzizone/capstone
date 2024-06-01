@@ -1,23 +1,18 @@
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/widgets.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:intl/intl.dart';
 import 'package:running_mate/src/theme/colors.dart';
 import 'package:running_mate/src/screens/SetGoalScreen.dart';
 import 'package:running_mate/src/screens/MyRecordScreen.dart';
 import 'package:running_mate/src/screens/TimerPage.dart';
-import 'package:charts_flutter/flutter.dart' as charts;
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-
-import 'package:intl/intl.dart';
+import 'package:running_mate/src/screens/TimerScreen.dart';
 
 // Utility functions for formatting
 String formatDate(Timestamp timestamp) {
-  String dateString = '2024-05-22';
-  List<String> parts = dateString.split('-');
-  String month = parts[1];
-  String day = parts[2];
-  return '$month/$day';
+  DateTime date = timestamp.toDate();
+  return DateFormat('MM/dd').format(date);
 }
 
 String formatDistance(String metersString) {
@@ -73,6 +68,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
   String userGoal = ''; // 마라톤 대회 변수
   String daysLeft = ''; // D-Day 변수
   String userId = ''; // D-Day 변수
+  List<PaceData> paceData = [];
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -92,9 +88,6 @@ class _PracticeScreenState extends State<PracticeScreen> {
 
     Duration difference = targetDate.difference(currentDate);
     int daysDifference = difference.inDays;
-
-    print('daysDifference');
-    print(daysDifference);
 
     if (daysDifference == 0) {
       return 'D - day';
@@ -118,15 +111,13 @@ class _PracticeScreenState extends State<PracticeScreen> {
       if (goalSnapshot.exists) {
         setState(() {
           userGoal = goalSnapshot['goal'];
-
-          //_selectedDate = (goalSnapshot['date'] as Timestamp).toDate();
-          daysLeft = goalSnapshot['date'];
-          daysLeft = calculateDaysDifference(daysLeft);
+          daysLeft = calculateDaysDifference(goalSnapshot['date']);
         });
       }
     }
   }
 
+  @override
   void initState() {
     super.initState();
     _loadGoal();
@@ -240,19 +231,17 @@ class _PracticeScreenState extends State<PracticeScreen> {
                 Container(
                   height: 65.0,
                   width: 200.0,
-                  margin: EdgeInsets.fromLTRB(
-                      0.0, 25.0, 0.0, 0.0), // 위쪽에 25.0의 여백을 줍니다.
+                  margin: EdgeInsets.fromLTRB(0.0, 25.0, 0.0, 0.0),
                   decoration: BoxDecoration(
-                    borderRadius:
-                        BorderRadius.circular(20.0), // 버튼의 모서리를 둥글게 만듭니다.
-                    color: iris_100, // 버튼의 배경색을 흰색으로 설정합니다.
+                    borderRadius: BorderRadius.circular(20.0),
+                    color: iris_100,
                   ),
                   child: TextButton(
                     onPressed: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => TimerPage(),
+                          builder: (context) => TimerScreen(),
                         ),
                       );
                     },
@@ -266,7 +255,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
                     ),
                   ),
                 ),
-                SizedBox(width: 20), // 여백 추가
+                SizedBox(width: 20),
                 Expanded(
                   child: Container(
                     height: 65.0,
@@ -285,7 +274,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
                         );
                       },
                       child: Text(
-                        '내 기록 >', // 버튼에 표시될 텍스트입니다.
+                        '내 기록 >',
                         style: TextStyle(
                           color: Colors.white,
                           fontFamily: 'PretandardMedium',
@@ -303,7 +292,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
                     .collection('running record')
                     .doc(userId)
                     .collection('record')
-                    .orderBy('date', descending: true) // 날짜 순으로 정렬
+                    .orderBy('date', descending: true)
                     .snapshots(),
                 builder: (BuildContext context,
                     AsyncSnapshot<QuerySnapshot<Map<String, dynamic>>>
@@ -313,11 +302,11 @@ class _PracticeScreenState extends State<PracticeScreen> {
                       child: CircularProgressIndicator(),
                     );
                   }
-
+                  paceData = [];
                   final docs = snapshot.data!.docs;
-                  //리스트뷰
+
                   return SingleChildScrollView(
-                    scrollDirection: Axis.horizontal, // 가로 방향 스크롤
+                    scrollDirection: Axis.horizontal,
                     child: Row(
                       children: docs.map((doc) {
                         return Container(
@@ -364,67 +353,195 @@ class _PracticeScreenState extends State<PracticeScreen> {
                 },
               ),
             ),
+            SizedBox(
+              height: 20.0,
+            ),
             Container(
               height: 200,
               child: StreamBuilder(
                 stream: FirebaseFirestore.instance
-                    .collection('/running record/qLGojNsNczqZF0UI95Im/record')
-                    .orderBy('date', descending: true) // 날짜 순으로 정렬
+                    .collection('running record')
+                    .doc(userId)
+                    .collection('record')
+                    .orderBy('date', descending: true)
                     .snapshots(),
                 builder: (BuildContext context,
                     AsyncSnapshot<QuerySnapshot<Map<String, dynamic>>>
                         snapshot) {
-                  if (!snapshot.hasData) return CircularProgressIndicator();
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  }
+                  final docs = snapshot.data!.docs;
+                  //List<PaceData> paceData = [];
 
-                  List<charts.Series<PaceData, DateTime>> series = [
-                    charts.Series<PaceData, DateTime>(
-                      id: 'Running Pace',
-                      colorFn: (_, __) =>
-                          charts.MaterialPalette.blue.shadeDefault,
-                      domainFn: (PaceData paces, _) => paces.date,
-                      measureFn: (PaceData paces, _) =>
-                          double.parse(paces.pace), // String을 double로 변환
-                      data: snapshot.data!.docs
-                          .map((doc) => PaceData(DateTime.parse(doc['date']),
-                              doc['pace'])) // String으로 pace 필드를 받아옴
-                          .toList(),
-                    )
-                  ];
+                  for (var doc in docs) {
+                    if (paceData.length <= 5) {
+                      final DateTime date = (doc['date'] as Timestamp).toDate();
+                      final double pace = double.parse(doc['pace']);
 
-                  // 동그라미 마크와 텍스트를 생성하는 함수
-                  List<charts.Series> _createMarkerSeries(List<PaceData> data) {
-                    return [
-                      charts.Series<PaceData, DateTime>(
-                        id: 'Pace Markers',
-                        colorFn: (_, __) =>
-                            charts.MaterialPalette.blue.shadeDefault,
-                        domainFn: (PaceData paces, _) => paces.date,
-                        measureFn: (PaceData paces, _) =>
-                            double.parse(paces.pace),
-                        data: data,
-                        // 동그라미 마크 생성
-                        radiusPxFn: (_, __) => 5, // 마크의 크기 설정
-                        // 마크 위에 텍스트 생성
-                        labelAccessorFn: (PaceData paces, _) =>
-                            'Pace: ${paces.pace}',
-                        // 텍스트 스타일 설정
-                        insideLabelStyleAccessorFn: (PaceData paces, _) =>
-                            charts.TextStyleSpec(fontSize: 12),
-                      ),
-                    ];
+                      final sameDateGroup =
+                          paceData.where((data) => data.date == date);
+
+                      if (sameDateGroup.isEmpty) {
+                        paceData.add(PaceData(date, pace));
+                      } else {
+                        final lowestPaceData = sameDateGroup
+                            .reduce((a, b) => a.pace < b.pace ? a : b);
+
+                        if (pace < lowestPaceData.pace) {
+                          paceData.remove(lowestPaceData);
+                          paceData.add(PaceData(date, pace));
+                        }
+                      }
+                    }
                   }
 
-                  return charts.TimeSeriesChart(
-                    series,
-                    animate: true,
-                    dateTimeFactory: const charts.LocalDateTimeFactory(),
+                  paceData.sort((a, b) => a.date.compareTo(b.date));
+
+                  return Padding(
+                    padding: const EdgeInsets.only(
+                      right: 15,
+                      left: 0,
+                      top: 0,
+                      bottom: 0,
+                    ),
+                    child: LineChart(
+                      buildChartData(paceData),
+                    ),
                   );
                 },
               ),
-            )
+            ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget bottomTitleWidget(double value, TitleMeta meta) {
+    final dateText = (value.toInt() >= 0 && value.toInt() < paceData.length)
+        ? DateFormat('MM/dd').format(paceData[value.toInt()].date)
+        : '';
+
+    return SideTitleWidget(
+      axisSide: meta.axisSide,
+      child: Text(
+        dateText,
+        style: TextStyle(
+          //fontWeight: FontWeight.bold,
+          fontFamily: 'PretandardMedium',
+          color: gray4,
+          fontSize: 13,
+        ),
+      ),
+    );
+  }
+
+  Widget leftTitleWidget(double value, TitleMeta meta) {
+    int pace = value.toInt();
+
+    return SideTitleWidget(
+      axisSide: meta.axisSide,
+      child: Text(
+        pace.toString(),
+        style: TextStyle(
+          //fontWeight: FontWeight.bold,
+          fontFamily: 'PretandardMedium',
+          color: gray4,
+          fontSize: 13,
+        ),
+      ),
+    );
+  }
+
+  LineChartData buildChartData(List<PaceData> paceData) {
+    List<FlSpot> spots = [];
+
+    for (int i = 0; i < paceData.length; i++) {
+      spots.add(FlSpot(i.toDouble(), paceData[i].pace));
+    }
+
+    return LineChartData(
+      gridData: FlGridData(
+        show: true,
+        drawVerticalLine: true,
+        horizontalInterval: 2,
+        verticalInterval: 1,
+        getDrawingHorizontalLine: (value) {
+          return const FlLine(
+            color: gray2,
+            strokeWidth: 1,
+          );
+        },
+        // getDrawingVerticalLine: (value) {
+        //   return const FlLine(
+        //     color: gray2,
+        //     strokeWidth: 1,
+        //   );
+        // },
+      ),
+      titlesData: FlTitlesData(
+        show: true,
+        rightTitles: const AxisTitles(
+          sideTitles: SideTitles(
+            showTitles: false,
+            reservedSize: 42,
+          ),
+        ),
+        topTitles: const AxisTitles(
+          sideTitles: SideTitles(showTitles: false),
+        ),
+        bottomTitles: AxisTitles(
+          sideTitles: SideTitles(
+            showTitles: true,
+            reservedSize: 30,
+            interval: 1,
+            getTitlesWidget: bottomTitleWidget,
+          ),
+        ),
+        leftTitles: AxisTitles(
+          sideTitles: SideTitles(
+            showTitles: true,
+            interval: 2,
+            reservedSize: 37,
+            getTitlesWidget: leftTitleWidget,
+          ),
+        ),
+      ),
+      borderData: FlBorderData(
+        show: true,
+        border: Border.all(color: gray2),
+      ),
+      minX: 0,
+      maxX: (paceData.length - 1).toDouble(),
+      minY: 0,
+      maxY: paceData
+              .map((data) => data.pace)
+              .reduce((a, b) => a > b ? a : b)
+              .ceilToDouble() +
+          1,
+      lineBarsData: [
+        LineChartBarData(
+          spots: spots,
+          isCurved: false,
+          gradient: LinearGradient(
+            colors: [iris_100, iris_80],
+          ),
+          barWidth: 5,
+          isStrokeCapRound: true,
+          dotData: const FlDotData(
+            show: true,
+          ),
+          belowBarData: BarAreaData(
+            show: true,
+            gradient: LinearGradient(
+              colors: [iris_100.withOpacity(0.3), iris_60.withOpacity(0.3)],
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -432,7 +549,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
 // Define the PaceData class
 class PaceData {
   final DateTime date;
-  final String pace;
+  final double pace;
 
   PaceData(this.date, this.pace);
 }
