@@ -88,7 +88,9 @@ class _SetGoalScreenState extends State<SetGoalScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
+        backgroundColor: Colors.white,
         title: Text(
           '목표 설정하기',
           style: TextStyle(

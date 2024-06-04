@@ -44,6 +44,7 @@ class _MyRecordScreenState extends State<MyRecordScreen> {
 
       querySnapshot.docs.forEach((doc) {
         Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+
         if (data.containsKey('date') && data['date'] != null) {
           // Timestamp를 DateTime으로 변환
           DateTime date = (data['date'] as Timestamp).toDate();
@@ -86,8 +87,18 @@ class _MyRecordScreenState extends State<MyRecordScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text('내 기록'),
+        title: Text(
+          '내 기록',
+          style: TextStyle(
+            color: Colors.black87,
+            fontFamily: 'PretandardMedium',
+            //fontWeight: FontWeight.bold,
+            fontSize: 20.0,
+          ),
+        ),
+        backgroundColor: Colors.white,
       ),
       body: Column(
         children: [
@@ -179,6 +190,7 @@ class _MyRecordScreenState extends State<MyRecordScreen> {
 
   Widget _buildEventList() {
     final events = selectedDay != null ? _getEventsForDay(selectedDay!) : [];
+
     return ListView(
       children: events.map((record) {
         return Card(

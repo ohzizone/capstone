@@ -96,6 +96,9 @@ class _TimerPageState extends State<TimerPage>
           ),
           onMapReady: (controller) async {
             // 지도 준비 완료 시 호출되는 콜백 함수
+            final locationOverlay = await controller.getLocationOverlay();
+            print("좌표!");
+            print(locationOverlay);
             mapControllerCompleter
                 .complete(controller); // Completer에 지도 컨트롤러 완료 신호 전송
             debugPrint("onMapReady");

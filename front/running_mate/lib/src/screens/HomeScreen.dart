@@ -266,7 +266,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     context,
                     MaterialPageRoute(
                       //builder: (_) => BluetoothScreen(),
-                      builder: (_) => BluetoothScreen(),
+                      builder: (_) => FlutterBlueApp(),
                     ),
                   );
                 },
