@@ -4,6 +4,7 @@ import 'package:running_mate/src/controllers/BluetoothController.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:get/get.dart';
+import 'package:running_mate/src/theme/colors.dart';
 
 class BluetoothScreen extends StatelessWidget {
   final BluetoothController _bluetoothController =
@@ -20,11 +21,26 @@ class BluetoothScreen extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Text('Flutter Blue Plus Example'),
-            ElevatedButton(
-              onPressed: () async {
-                _bluetoothController.startScan();
-              },
-              child: Text('Scan for Devices'),
+            Container(
+              height: 65.0,
+              margin: EdgeInsets.fromLTRB(0.0, 25.0, 2.0, 0.0),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20.0),
+                color: iris_100,
+              ),
+              child: TextButton(
+                onPressed: () async {
+                  _bluetoothController.startScan();
+                },
+                child: Text(
+                  '블루투스 스캔하기',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontFamily: 'PretandardMedium',
+                    fontSize: 18.0,
+                  ),
+                ),
+              ),
             ),
             Expanded(
               child: Obx(() => ListView.builder(
