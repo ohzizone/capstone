@@ -127,8 +127,12 @@ class _PracticeScreenState extends State<PracticeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: const Text(''),
+        backgroundColor: Colors.white,
+      ),
       body: Padding(
-        padding: EdgeInsets.fromLTRB(16.0, 71.0, 16.0, 0.0),
+        padding: EdgeInsets.fromLTRB(16.0, 30.0, 16.0, 0.0),
         child: Column(
           children: <Widget>[
             Container(

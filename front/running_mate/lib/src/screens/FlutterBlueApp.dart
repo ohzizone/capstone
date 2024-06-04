@@ -75,7 +75,7 @@ class _FlutterBlueAppState extends State<FlutterBlueApp> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Flutter Blue Plus Example'),
+        title: Text('블루투스 연결'),
       ),
       body: Center(
         child: Column(

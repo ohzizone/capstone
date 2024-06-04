@@ -13,8 +13,10 @@ class BluetoothScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text('블루투스 연결'),
+        backgroundColor: Colors.white,
       ),
       body: Center(
         child: Column(
@@ -33,7 +35,9 @@ class BluetoothScreen extends StatelessWidget {
                   _bluetoothController.startScan();
                 },
                 child: Text(
-                  '블루투스 스캔하기',
+                  
+                  '블루투스 연결하기 >',
+
                   style: TextStyle(
                     color: Colors.white,
                     fontFamily: 'PretandardMedium',
