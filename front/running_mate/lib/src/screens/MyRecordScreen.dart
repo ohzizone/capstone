@@ -88,7 +88,9 @@ class _MyRecordScreenState extends State<MyRecordScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('내 기록'),
+        backgroundColor: Colors.white,
       ),
+      backgroundColor: Colors.white,
       body: Column(
         children: [
           TableCalendar(
