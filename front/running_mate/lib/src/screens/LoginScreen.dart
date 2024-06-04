@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:running_mate/src/screens/HomeScreen.dart';
 import 'package:running_mate/src/screens/Counter.dart';
-import 'package:running_mate/src/screens/PracticeScreen.dart';
+import 'package:running_mate/src/screens/HomeScreen.dart';
 import 'package:running_mate/src/theme/colors.dart';
 import 'dart:ui';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -506,7 +506,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(builder: (context) {
-                                  return PracticeScreen();
+                                  return HomeScreen();
                                 }),
                               );
                             }

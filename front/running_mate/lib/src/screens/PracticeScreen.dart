@@ -126,6 +126,14 @@ class _PracticeScreenState extends State<PracticeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        title: Text('메인 화면',
+            style: TextStyle(
+              fontFamily: 'PretandardMedium',
+              fontSize: 20.0,
+            )),
+      ),
       backgroundColor: Colors.white,
       body: Padding(
         padding: EdgeInsets.fromLTRB(16.0, 71.0, 16.0, 0.0),
