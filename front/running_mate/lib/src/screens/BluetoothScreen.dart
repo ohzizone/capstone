@@ -35,7 +35,9 @@ class BluetoothScreen extends StatelessWidget {
                   _bluetoothController.startScan();
                 },
                 child: Text(
+                  
                   '블루투스 연결하기 >',
+
                   style: TextStyle(
                     color: Colors.white,
                     fontFamily: 'PretandardMedium',

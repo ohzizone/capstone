@@ -232,9 +232,9 @@ class _HomeScreenState extends State<HomeScreen> {
               width: double.infinity,
               height: 60.0,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(5.0), // 버튼의 모서리를 둥글게 만듭니다.
-                border: Border.all(color: Colors.grey), // 회색 선으로 버튼 테두리를 만듭니다.
-                color: Colors.white, // 버튼의 배경색을 흰색으로 설정합니다.
+                borderRadius: BorderRadius.circular(5.0),
+                border: Border.all(color: Colors.grey),
+                color: Colors.white,
               ),
               child: TextButton(
                 onPressed: () {
@@ -256,9 +256,9 @@ class _HomeScreenState extends State<HomeScreen> {
               width: double.infinity,
               height: 60.0,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(5.0), // 버튼의 모서리를 둥글게 만듭니다.
-                border: Border.all(color: Colors.grey), // 회색 선으로 버튼 테두리를 만듭니다.
-                color: Colors.white, // 버튼의 배경색을 흰색으로 설정합니다.
+                borderRadius: BorderRadius.circular(5.0),
+                border: Border.all(color: Colors.grey),
+                color: Colors.white,
               ),
               child: TextButton(
                 onPressed: () {
@@ -266,7 +266,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     context,
                     MaterialPageRoute(
                       //builder: (_) => BluetoothScreen(),
-                      builder: (_) => BluetoothScreen(),
+                      builder: (_) => FlutterBlueApp(),
                     ),
                   );
                 },
