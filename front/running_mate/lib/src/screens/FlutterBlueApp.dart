@@ -1,175 +1,85 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
-import 'package:running_mate/src/theme/colors.dart';
-import 'dart:convert';
 
 class FlutterBlueApp extends StatefulWidget {
   @override
-  _FlutterBlueAppState createState() => _FlutterBlueAppState();
+  _BluetoothPageState createState() => _BluetoothPageState();
 }
 
-class _FlutterBlueAppState extends State<FlutterBlueApp> {
+class _BluetoothPageState extends State<FlutterBlueApp> {
   // FlutterBluePlus 인스턴스 생성
   FlutterBluePlus flutterBlue = FlutterBluePlus();
-  // 검색된 BLE 장치 목록을 저장할 리스트
-  List<ScanResult> scanResults = [];
-  BluetoothDevice? connectedDevice;
-  TextEditingController distanceController = TextEditingController();
-  TextEditingController paceController = TextEditingController();
+  BluetoothDevice? _connectedDevice;
+  List<BluetoothService> _services = [];
 
   @override
   void initState() {
     super.initState();
-    initializeBluetooth(); // Bluetooth 설정 초기화
+    startScan();
   }
 
-  // Bluetooth 설정 초기화 및 지원 여부 확인
-  void initializeBluetooth() async {
-    try {
-      // 로그 레벨 설정 (상세 로깅 활성화)
-      await FlutterBluePlus.setLogLevel(LogLevel.verbose);
+  void startScan() {
+    FlutterBluePlus.startScan(timeout: Duration(seconds: 4));
 
-      // Bluetooth 기능 지원 여부 확인
-      if (await FlutterBluePlus.isSupported == false) {
-        print("Bluetooth not supported by this device");
-        return;
+    var subscription = FlutterBluePlus.scanResults.listen((results) {
+      for (ScanResult r in results) {
+        if (r.device.platformName == 'RunningMate') {
+          // HM-10의 기본 이름
+          connectToDevice(r.device);
+          FlutterBluePlus.stopScan();
+          break;
+        }
       }
-    } catch (e) {
-      print("Error initializing Bluetooth: $e");
-    }
+    });
+
+    FlutterBluePlus.isScanning.listen((isScanning) {
+      if (!isScanning) {
+        subscription.cancel();
+      }
+    });
   }
 
-  void connectToDevice(BluetoothDevice device) async {
-    try {
-      await device.connect();
-      setState(() {
-        connectedDevice = device;
-      });
-    } catch (e) {
-      print("Error connecting to device: $e");
-    }
+  Future<void> connectToDevice(BluetoothDevice device) async {
+    await device.connect();
+    _connectedDevice = device;
+    _services = await device.discoverServices();
+    setState(() {});
   }
 
-  void sendRunningData() async {
-    if (connectedDevice == null) return;
-
-    // 서비스와 특성을 찾는 로직을 추가해야 합니다.
-    // 여기서는 예제로 임의의 UUID를 사용합니다.
-    var serviceUuid = Guid("YOUR_SERVICE_UUID");
-    var characteristicUuid = Guid("YOUR_CHARACTERISTIC_UUID");
-
-    List<BluetoothService> services = await connectedDevice!.discoverServices();
-    var targetService =
-        services.firstWhere((service) => service.uuid == serviceUuid);
-    var targetCharacteristic = targetService.characteristics
-        .firstWhere((char) => char.uuid == characteristicUuid);
-
-    String distance = distanceController.text;
-    String pace = paceController.text;
-
-    await targetCharacteristic
-        .write(utf8.encode("Distance: $distance, Pace: $pace"));
+  void sendData(String data) async {
+    if (_connectedDevice != null) {
+      for (BluetoothService service in _services) {
+        for (BluetoothCharacteristic characteristic
+            in service.characteristics) {
+          if (characteristic.properties.write) {
+            await characteristic.write(data.codeUnits);
+          }
+        }
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('블루투스 연결'),
+        title: Text('Bluetooth HM-10'),
       ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Text('Flutter Blue Plus Example'),
-            Container(
-              height: 65.0,
-              margin: EdgeInsets.fromLTRB(0.0, 25.0, 2.0, 0.0),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20.0),
-                color: iris_100,
-              ),
-              child: TextButton(
-                onPressed: () async {
-                  // BLE 검색 시작
-                  FlutterBluePlus.startScan(
-                    timeout: Duration(seconds: 15),
-                  );
-
-                  // 검색된 디바이스 리스닝
-                  var subscription =
-                      FlutterBluePlus.scanResults.listen((results) {
-                    // 결과 처리
-                    setState(() {
-                      if (mounted) {
-                        scanResults = results;
-                      }
-                    });
-
-                    // ESP32 장치를 찾으면 자동으로 연결 시도
-                    for (var result in results) {
-                      if (result.device.platformName == "ESP32") {
-                        FlutterBluePlus.stopScan();
-                        //subscription.cancel();
-                        connectToDevice(result.device);
-                        break;
-                      }
-                    }
-                  });
-
-                  // 검색 종료
-                  await Future.delayed(Duration(seconds: 15));
-                  FlutterBluePlus.stopScan();
-                  subscription.cancel();
-                },
-                child: Text(
-                  '블루투스 스캔하기',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontFamily: 'PretandardMedium',
-                    fontSize: 18.0,
-                  ),
-                ),
-              ),
+            Text(
+              _connectedDevice != null
+                  ? 'Connected to ${_connectedDevice!.platformName}'
+                  : 'Searching for devices...',
             ),
-            connectedDevice == null
-                ? Container()
-                : Column(
-                    children: [
-                      Text('Connected to ${connectedDevice!.name}'),
-                      TextField(
-                        controller: distanceController,
-                        decoration: InputDecoration(
-                          labelText: 'Enter distance',
-                        ),
-                      ),
-                      TextField(
-                        controller: paceController,
-                        decoration: InputDecoration(
-                          labelText: 'Enter pace',
-                        ),
-                      ),
-                      ElevatedButton(
-                        onPressed: sendRunningData,
-                        child: Text('Send Data'),
-                      ),
-                    ],
-                  ),
-            Expanded(
-              child: ListView.builder(
-                itemCount: scanResults.length,
-                itemBuilder: (context, index) {
-                  final result = scanResults[index];
-                  return Card(
-                    child: ListTile(
-                      title: Text(result.device.name.isNotEmpty
-                          ? result.device.name
-                          : 'Unknown Device'),
-                      subtitle: Text('RSSI: ${result.rssi}'),
-                    ),
-                  );
-                },
-              ),
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _connectedDevice != null
+                  ? () => sendData('Hello HM-10')
+                  : null,
+              child: Text('Send Data'),
             ),
           ],
         ),
