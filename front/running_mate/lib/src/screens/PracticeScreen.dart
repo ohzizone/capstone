@@ -245,8 +245,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) =>
-                              TimerPage(), // 페이지 이동 TimerPage : 지도 , TimerScreen : 지도 X
+                          builder: (context) => TimerPage(),
                         ),
                       );
                     },
