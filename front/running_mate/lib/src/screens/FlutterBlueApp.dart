@@ -31,7 +31,7 @@ class _FlutterBlueAppState extends State<FlutterBlueApp> {
 
       // Bluetooth 기능 지원 여부 확인
       if (await FlutterBluePlus.isSupported == false) {
-        print("Bluetooth not supported by this device");
+        print("블루투스가 지원되지 않습니다.");
         return;
       }
     } catch (e) {
@@ -53,10 +53,10 @@ class _FlutterBlueAppState extends State<FlutterBlueApp> {
   void sendRunningData() async {
     if (connectedDevice == null) return;
 
-    // 서비스와 특성을 찾는 로직을 추가해야 합니다.
-    // 여기서는 예제로 임의의 UUID를 사용합니다.
-    var serviceUuid = Guid("YOUR_SERVICE_UUID");
-    var characteristicUuid = Guid("YOUR_CHARACTERISTIC_UUID");
+    var serviceUuid =
+        Guid("0000ffe0-0000-1000-8000-00805f9b34fb"); // HM-10 기본 서비스 UUID
+    var characteristicUuid =
+        Guid("0000ffe1-0000-1000-8000-00805f9b34fb"); // HM-10 기본 특성 UUID
 
     List<BluetoothService> services = await connectedDevice!.discoverServices();
     var targetService =
@@ -64,11 +64,13 @@ class _FlutterBlueAppState extends State<FlutterBlueApp> {
     var targetCharacteristic = targetService.characteristics
         .firstWhere((char) => char.uuid == characteristicUuid);
 
-    String distance = distanceController.text;
-    String pace = paceController.text;
+    String distance = distanceController.text.toString();
+    String pace = paceController.text.toString();
 
-    await targetCharacteristic
-        .write(utf8.encode("Distance: $distance, Pace: $pace"));
+    print(("Distance: $distance, Pace: $pace"));
+    print(("디스턴스가 잘 찍히나?"));
+
+    await targetCharacteristic.write(utf8.encode(" $distance:$pace"));
   }
 
   @override
@@ -81,7 +83,7 @@ class _FlutterBlueAppState extends State<FlutterBlueApp> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Text('Flutter Blue Plus Example'),
+            Text('블루투스'),
             Container(
               height: 65.0,
               margin: EdgeInsets.fromLTRB(0.0, 25.0, 2.0, 0.0),
@@ -105,16 +107,6 @@ class _FlutterBlueAppState extends State<FlutterBlueApp> {
                         scanResults = results;
                       }
                     });
-
-                    // ESP32 장치를 찾으면 자동으로 연결 시도
-                    for (var result in results) {
-                      if (result.device.platformName == "ESP32") {
-                        FlutterBluePlus.stopScan();
-                        //subscription.cancel();
-                        connectToDevice(result.device);
-                        break;
-                      }
-                    }
                   });
 
                   // 검색 종료
@@ -123,7 +115,7 @@ class _FlutterBlueAppState extends State<FlutterBlueApp> {
                   subscription.cancel();
                 },
                 child: Text(
-                  '블루투스 스캔하기',
+                  '블루투스 연결하기',
                   style: TextStyle(
                     color: Colors.white,
                     fontFamily: 'PretandardMedium',
@@ -136,11 +128,33 @@ class _FlutterBlueAppState extends State<FlutterBlueApp> {
                 ? Container()
                 : Column(
                     children: [
-                      Text('Connected to ${connectedDevice!.name}'),
+                      Text('${connectedDevice!.name}에 연결되었습니다.'),
                       TextField(
                         controller: distanceController,
                         decoration: InputDecoration(
-                          labelText: 'Enter distance',
+                          labelText: '목표 설정하기',
+                          labelStyle: TextStyle(
+                            fontFamily: 'PretandardMedium',
+                            color: gray4, // 레이블 텍스트 색상
+                            fontSize: 20, // 레이블 텍스트 크기
+                          ),
+                          hintText: '목표를 선택해주세요',
+                          hintStyle: TextStyle(
+                            fontFamily: 'PretandardMedium',
+                            color: gray4, // 레이블 텍스트 색상
+                            fontSize: 14, // 레이블 텍스트 크기
+                          ),
+                          border: OutlineInputBorder(),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: iris_100,
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: iris_80,
+                            ),
+                          ),
                         ),
                       ),
                       TextField(
@@ -160,12 +174,18 @@ class _FlutterBlueAppState extends State<FlutterBlueApp> {
                 itemCount: scanResults.length,
                 itemBuilder: (context, index) {
                   final result = scanResults[index];
+                  // 장치의 이름이 "unknown device"이면 표시하지 않음
+                  if (result.device.name.isEmpty ||
+                      result.device.name == "unknown device") {
+                    return SizedBox.shrink(); // 빈 위젯 반환
+                  }
                   return Card(
                     child: ListTile(
-                      title: Text(result.device.name.isNotEmpty
-                          ? result.device.name
-                          : 'Unknown Device'),
+                      title: Text(result.device.name),
                       subtitle: Text('RSSI: ${result.rssi}'),
+                      onTap: () {
+                        connectToDevice(result.device);
+                      },
                     ),
                   );
                 },

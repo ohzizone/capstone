@@ -12,6 +12,8 @@ dependencies:
 
   fl_chart: ^0.68.0
 
+  permission_handler: ^11.3.1
+
   flutter_naver_map: ^1.2.2
   intl: ^0.17.0
   flutter_blue_plus: ^1.32.7
