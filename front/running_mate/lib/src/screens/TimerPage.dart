@@ -291,7 +291,7 @@ class TimerRecords extends StatelessWidget {
 
 class TimerControls extends StatelessWidget {
   final bool isRunning;
-  final bool hasStarted; // 처음에는 기록 버튼을 숨기기 위해 추가
+  final bool hasStarted;
   final void Function() startTimer;
   final void Function() stopTimer;
   final void Function() resetTimer;
@@ -299,7 +299,7 @@ class TimerControls extends StatelessWidget {
   TimerControls({
     Key? key,
     required this.isRunning,
-    required this.hasStarted, // 추가
+    required this.hasStarted,
     required this.startTimer,
     required this.stopTimer,
     required this.resetTimer,
@@ -308,7 +308,7 @@ class TimerControls extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(20), // 원래의 패딩 값 유지
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
@@ -332,25 +332,29 @@ class TimerControls extends StatelessWidget {
               ),
             ),
           ] else ...[
-            ElevatedButton(
-              onPressed: startTimer,
-              child: const Text(
-                '시작',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontFamily: 'PretandardMedium',
-                  fontSize: 15.0,
-                  fontWeight: FontWeight.bold,
+            Padding(
+              padding: const EdgeInsets.only(
+                  bottom: 20.0), // 시작 버튼을 위로 이동시킬 만큼의 여백 추가
+              child: ElevatedButton(
+                onPressed: startTimer,
+                child: const Text(
+                  '시작',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontFamily: 'PretandardMedium',
+                    fontSize: 15.0,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: iris_100,
+                  foregroundColor: Colors.white,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 50, vertical: 20),
                 ),
               ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: iris_100,
-                foregroundColor: Colors.white,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 50, vertical: 20),
-              ),
             ),
-            if (hasStarted) // hasStarted가 true일 때만 기록 버튼 표시
+            if (hasStarted)
               ElevatedButton(
                 onPressed: resetTimer,
                 child: const Text(
