@@ -245,7 +245,7 @@ class _PracticeScreenState extends State<PracticeScreen> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => TimerPage(),
+                          builder: (context) => TimerScreen(),
                         ),
                       );
                     },

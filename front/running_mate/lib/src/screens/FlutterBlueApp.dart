@@ -45,6 +45,7 @@ class _FlutterBlueAppState extends State<FlutterBlueApp> {
       setState(() {
         connectedDevice = device;
       });
+      print("${device.platformName}에 연결되었습니다.");
     } catch (e) {
       print("Error connecting to device: $e");
     }
@@ -73,6 +74,31 @@ class _FlutterBlueAppState extends State<FlutterBlueApp> {
     await targetCharacteristic.write(utf8.encode(" $distance:$pace"));
   }
 
+  void startScanAndConnect() async {
+    // BLE 검색 시작
+    FlutterBluePlus.startScan(
+      timeout: Duration(seconds: 15),
+    );
+
+    // 검색된 디바이스 리스닝
+    var subscription = FlutterBluePlus.scanResults.listen((results) {
+      for (var result in results) {
+        if (result.device.platformName == 'RunningMate') {
+          // 'RunningMate' 기기 찾으면 연결
+          connectToDevice(result.device);
+          FlutterBluePlus.stopScan();
+          // subscription.cancel();
+          break;
+        }
+      }
+    });
+
+    // 검색 종료
+    await Future.delayed(Duration(seconds: 15));
+    FlutterBluePlus.stopScan();
+    subscription.cancel();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -92,29 +118,8 @@ class _FlutterBlueAppState extends State<FlutterBlueApp> {
                 color: iris_100,
               ),
               child: TextButton(
-                onPressed: () async {
-                  // BLE 검색 시작
-                  FlutterBluePlus.startScan(
-                    timeout: Duration(seconds: 15),
-                  );
-
-                  // 검색된 디바이스 리스닝
-                  var subscription =
-                      FlutterBluePlus.scanResults.listen((results) {
-                    // 결과 처리
-                    setState(() {
-                      if (mounted) {
-                        scanResults = results;
-                      }
-                    });
-                  });
-
-                  // 검색 종료
-                  await Future.delayed(Duration(seconds: 15));
-                  FlutterBluePlus.stopScan();
-                  subscription.cancel();
-                },
-                child: Text(
+                onPressed: startScanAndConnect,
+                child: const Text(
                   '블루투스 연결하기',
                   style: TextStyle(
                     color: Colors.white,
@@ -125,38 +130,67 @@ class _FlutterBlueAppState extends State<FlutterBlueApp> {
               ),
             ),
             connectedDevice == null
-                ? Container()
-                : Column(
+                ? Container(
+                    child: Column(
                     children: [
-                      Text('${connectedDevice!.name}에 연결되었습니다.'),
-                      TextField(
-                        controller: distanceController,
-                        decoration: InputDecoration(
-                          labelText: '목표 설정하기',
-                          labelStyle: TextStyle(
-                            fontFamily: 'PretandardMedium',
-                            color: gray4, // 레이블 텍스트 색상
-                            fontSize: 20, // 레이블 텍스트 크기
-                          ),
-                          hintText: '목표를 선택해주세요',
-                          hintStyle: TextStyle(
-                            fontFamily: 'PretandardMedium',
-                            color: gray4, // 레이블 텍스트 색상
-                            fontSize: 14, // 레이블 텍스트 크기
-                          ),
-                          border: OutlineInputBorder(),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                              color: iris_100,
-                            ),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                              color: iris_80,
-                            ),
-                          ),
+                      Text(
+                        '러닝메이트에 연결할 수 없습니다.',
+                        style: TextStyle(
+                          color: gray3,
+                          fontFamily: 'PretandardMedium',
+                          fontSize: 18.0,
                         ),
                       ),
+                      Image.asset(
+                        'assets/images/disconnect.png',
+                        height: 100.0,
+                        fit: BoxFit.fill,
+                      ),
+                    ],
+                  ))
+                : Column(
+                    children: [
+                      Text(
+                        '${connectedDevice!.platformName}에 연결되었습니다.',
+                        style: TextStyle(
+                          color: gray3,
+                          fontFamily: 'PretandardMedium',
+                          fontSize: 18.0,
+                        ),
+                      ),
+                      Image.asset(
+                        'assets/images/connect.png',
+                        height: 100.0,
+                        fit: BoxFit.fill,
+                      ),
+                      // TextField(
+                      //   controller: distanceController,
+                      //   decoration: InputDecoration(
+                      //     labelText: '목표 설정하기',
+                      //     labelStyle: TextStyle(
+                      //       fontFamily: 'PretandardMedium',
+                      //       color: gray4, // 레이블 텍스트 색상
+                      //       fontSize: 20, // 레이블 텍스트 크기
+                      //     ),
+                      //     hintText: '목표를 선택해주세요',
+                      //     hintStyle: TextStyle(
+                      //       fontFamily: 'PretandardMedium',
+                      //       color: gray4, // 레이블 텍스트 색상
+                      //       fontSize: 14, // 레이블 텍스트 크기
+                      //     ),
+                      //     border: OutlineInputBorder(),
+                      //     enabledBorder: OutlineInputBorder(
+                      //       borderSide: BorderSide(
+                      //         color: iris_100,
+                      //       ),
+                      //     ),
+                      //     focusedBorder: OutlineInputBorder(
+                      //       borderSide: BorderSide(
+                      //         color: iris_80,
+                      //       ),
+                      //     ),
+                      //   ),
+                      // ),
                       TextField(
                         controller: paceController,
                         decoration: InputDecoration(
@@ -169,28 +203,6 @@ class _FlutterBlueAppState extends State<FlutterBlueApp> {
                       ),
                     ],
                   ),
-            Expanded(
-              child: ListView.builder(
-                itemCount: scanResults.length,
-                itemBuilder: (context, index) {
-                  final result = scanResults[index];
-                  // 장치의 이름이 "unknown device"이면 표시하지 않음
-                  if (result.device.name.isEmpty ||
-                      result.device.name == "unknown device") {
-                    return SizedBox.shrink(); // 빈 위젯 반환
-                  }
-                  return Card(
-                    child: ListTile(
-                      title: Text(result.device.name),
-                      subtitle: Text('RSSI: ${result.rssi}'),
-                      onTap: () {
-                        connectToDevice(result.device);
-                      },
-                    ),
-                  );
-                },
-              ),
-            ),
           ],
         ),
       ),
