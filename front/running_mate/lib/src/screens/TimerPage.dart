@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart'; // 위치 추적 패키지
 import 'package:running_mate/src/theme/colors.dart';
 import 'package:flutter_naver_map/flutter_naver_map.dart';
 
@@ -9,7 +10,6 @@ class TimerPage extends StatefulWidget {
   _TimerPageState createState() => _TimerPageState();
 }
 
-//
 class _TimerPageState extends State<TimerPage>
     with SingleTickerProviderStateMixin {
   String distance = "0";
@@ -23,6 +23,10 @@ class _TimerPageState extends State<TimerPage>
   late AnimationController _animationController;
   final Completer<NaverMapController> mapControllerCompleter = Completer();
 
+  Position? _lastPosition;
+  double _totalDistance = 0.0;
+  StreamSubscription<Position>? _positionStreamSubscription;
+
   @override
   void initState() {
     super.initState();
@@ -30,20 +34,38 @@ class _TimerPageState extends State<TimerPage>
       vsync: this,
       duration: const Duration(minutes: 1), // 애니메이션 전체 시간을 1분으로 설정
     );
+    _requestPermission();
   }
 
   @override
   void dispose() {
     _animationController.dispose();
     timer?.cancel();
+    _positionStreamSubscription?.cancel();
     super.dispose();
   }
 
-  void updateGoal(String newDistance, String newTime) {
-    setState(() {
-      distance = newDistance;
-      time = newTime;
-    });
+  void _requestPermission() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      return Future.error('Location services are disabled.');
+    }
+
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        return Future.error('Location permissions are denied');
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      return Future.error(
+          'Location permissions are permanently denied, we cannot request permissions.');
+    }
   }
 
   void startTimer() {
@@ -52,6 +74,28 @@ class _TimerPageState extends State<TimerPage>
         seconds++;
       });
     });
+
+    _positionStreamSubscription = Geolocator.getPositionStream(
+      locationSettings: LocationSettings(
+        accuracy: LocationAccuracy.high,
+        distanceFilter: 10, // 최소 10미터 이동할 때마다 업데이트
+      ),
+    ).listen((Position position) {
+      if (_lastPosition != null) {
+        double distance = _calculateDistance(
+          _lastPosition!.latitude,
+          _lastPosition!.longitude,
+          position.latitude,
+          position.longitude,
+        );
+        _totalDistance += distance;
+        setState(() {
+          this.distance = _totalDistance.toStringAsFixed(2);
+        });
+      }
+      _lastPosition = position;
+    });
+
     setState(() {
       isRunning = true;
       hasStarted = true; // 타이머가 시작되면 true로 설정
@@ -62,6 +106,7 @@ class _TimerPageState extends State<TimerPage>
 
   void stopTimer() {
     timer?.cancel();
+    _positionStreamSubscription?.cancel();
     setState(() {
       isRunning = false;
       showMap = true; // '중단' 버튼을 누르면 네이버 지도를 표시
@@ -71,12 +116,36 @@ class _TimerPageState extends State<TimerPage>
 
   void resetTimer() {
     timer?.cancel();
+    _positionStreamSubscription?.cancel();
     setState(() {
       seconds = 0;
       isRunning = false;
       showMap = false;
+      _totalDistance = 0.0;
+      _lastPosition = null;
+      distance = "0";
       _animationController.reset(); // 애니메이션 리셋
     });
+  }
+
+  double _calculateDistance(
+      double startLat, double startLon, double endLat, double endLon) {
+    const double earthRadius = 6371000; // 지구 반경 (미터)
+    double dLat = _degreesToRadians(endLat - startLat);
+    double dLon = _degreesToRadians(endLon - startLon);
+
+    double a = sin(dLat / 2) * sin(dLat / 2) +
+        cos(_degreesToRadians(startLat)) *
+            cos(_degreesToRadians(endLat)) *
+            sin(dLon / 2) *
+            sin(dLon / 2);
+    double c = 2 * atan2(sqrt(a), sqrt(1 - a));
+
+    return (earthRadius * c) / 1000; // 거리를 km로 변환
+  }
+
+  double _degreesToRadians(double degrees) {
+    return degrees * pi / 180;
   }
 
   String _formatTime(int seconds) {
@@ -112,7 +181,12 @@ class _TimerPageState extends State<TimerPage>
           TimerRecords(
             distance: distance,
             time: time,
-            updateGoal: updateGoal,
+            updateGoal: (newDistance, newTime) {
+              setState(() {
+                distance = newDistance;
+                time = newTime;
+              });
+            },
             showMap: showMap,
             buildMapWidget: _buildMapWidget,
           ),
