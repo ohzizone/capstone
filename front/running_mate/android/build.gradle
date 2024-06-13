@@ -1,3 +1,15 @@
+buildscript {
+    ext.kotlin_version = '1.5.31'  // 최신 Kotlin 버전으로 설정
+    repositories {
+        google()
+        mavenCentral()
+    }
+    // dependencies {
+    //     classpath 'com.android.tools.build:gradle:8.4.0'  // 적절한 버전으로 수정
+    //     classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    // }
+}
+
 plugins {
     id 'com.android.application' version '7.3.0' apply false
   // ...
