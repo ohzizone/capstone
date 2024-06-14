@@ -21,6 +21,13 @@ class _FlutterBlueAppState extends State<FlutterBlueApp> {
   void initState() {
     super.initState();
     initializeBluetooth(); // Bluetooth 설정 초기화
+    checkConnection(); // 앱이 실행될 때 연결 상태 확인
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    checkConnection(); // 화면이 다시 표시될 때 연결 상태 확인
   }
 
   // Bluetooth 설정 초기화 및 지원 여부 확인
@@ -45,7 +52,7 @@ class _FlutterBlueAppState extends State<FlutterBlueApp> {
       setState(() {
         connectedDevice = device;
       });
-      print("${device.platformName}에 연결되었습니다.");
+      print("${device.name}에 연결되었습니다.");
     } catch (e) {
       print("Error connecting to device: $e");
     }
@@ -83,7 +90,7 @@ class _FlutterBlueAppState extends State<FlutterBlueApp> {
     // 검색된 디바이스 리스닝
     var subscription = FlutterBluePlus.scanResults.listen((results) {
       for (var result in results) {
-        if (result.device.platformName == 'RunningMate') {
+        if (result.device.name == 'RunningMate') {
           // 'RunningMate' 기기 찾으면 연결
           connectToDevice(result.device);
           FlutterBluePlus.stopScan();
@@ -99,6 +106,22 @@ class _FlutterBlueAppState extends State<FlutterBlueApp> {
     subscription.cancel();
   }
 
+  void checkConnection() async {
+    List<BluetoothDevice> connectedDevices =
+        await FlutterBluePlus.connectedDevices;
+    for (var device in connectedDevices) {
+      if (device.platformName == 'RunningMate') {
+        setState(() {
+          connectedDevice = device;
+        });
+        break;
+      }
+    }
+    if (connectedDevice == null) {
+      startScanAndConnect();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -109,7 +132,6 @@ class _FlutterBlueAppState extends State<FlutterBlueApp> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Text('블루투스'),
             Container(
               height: 65.0,
               margin: EdgeInsets.fromLTRB(0.0, 25.0, 2.0, 0.0),
@@ -130,8 +152,7 @@ class _FlutterBlueAppState extends State<FlutterBlueApp> {
               ),
             ),
             connectedDevice == null
-                ? Container(
-                    child: Column(
+                ? Column(
                     children: [
                       Text(
                         '러닝메이트에 연결할 수 없습니다.',
@@ -147,11 +168,11 @@ class _FlutterBlueAppState extends State<FlutterBlueApp> {
                         fit: BoxFit.fill,
                       ),
                     ],
-                  ))
+                  )
                 : Column(
                     children: [
                       Text(
-                        '${connectedDevice!.platformName}에 연결되었습니다.',
+                        '${connectedDevice!.name}에 연결되었습니다.',
                         style: TextStyle(
                           color: gray3,
                           fontFamily: 'PretandardMedium',
@@ -163,34 +184,6 @@ class _FlutterBlueAppState extends State<FlutterBlueApp> {
                         height: 100.0,
                         fit: BoxFit.fill,
                       ),
-                      // TextField(
-                      //   controller: distanceController,
-                      //   decoration: InputDecoration(
-                      //     labelText: '목표 설정하기',
-                      //     labelStyle: TextStyle(
-                      //       fontFamily: 'PretandardMedium',
-                      //       color: gray4, // 레이블 텍스트 색상
-                      //       fontSize: 20, // 레이블 텍스트 크기
-                      //     ),
-                      //     hintText: '목표를 선택해주세요',
-                      //     hintStyle: TextStyle(
-                      //       fontFamily: 'PretandardMedium',
-                      //       color: gray4, // 레이블 텍스트 색상
-                      //       fontSize: 14, // 레이블 텍스트 크기
-                      //     ),
-                      //     border: OutlineInputBorder(),
-                      //     enabledBorder: OutlineInputBorder(
-                      //       borderSide: BorderSide(
-                      //         color: iris_100,
-                      //       ),
-                      //     ),
-                      //     focusedBorder: OutlineInputBorder(
-                      //       borderSide: BorderSide(
-                      //         color: iris_80,
-                      //       ),
-                      //     ),
-                      //   ),
-                      // ),
                       TextField(
                         controller: paceController,
                         decoration: InputDecoration(

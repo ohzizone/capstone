@@ -4,9 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:running_mate/src/theme/colors.dart';
+import 'package:running_mate/src/services/location.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:sensors_plus/sensors_plus.dart';
 
 class TimerScreen extends StatefulWidget {
   @override
@@ -14,17 +17,31 @@ class TimerScreen extends StatefulWidget {
 }
 
 class _TimerScreenState extends State<TimerScreen> {
-  String distance = "0";
-  String startTime = "04:54:23";
-  String time = "04:54:23";
+  @override
+  void initState() {
+    super.initState();
+    getLocationData();
+  }
+
+  String distance = "0.0";
+  String startTime = "";
+  String time = "0";
   String endTime = "05:10:27";
   bool isRunning = false;
   Timer? timer;
+  Timer? locationTimer;
   int seconds = 0;
   final DateFormat dateFormat = DateFormat('yyyy-MM-dd');
 
+  Position? _startPosition;
+  Position? _currentPosition;
+  StreamSubscription<Position>? _positionStreamSubscription;
+
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  Position? _lastPosition;
+  double _totalDistance = 0.0;
 
   void updateGoal(String newDistance, String newTime) {
     if (mounted) {
@@ -33,6 +50,33 @@ class _TimerScreenState extends State<TimerScreen> {
         time = newTime;
       });
     }
+  }
+
+  void getLocationData() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      await Geolocator.openLocationSettings();
+      return Future.error('Location services are disabled.');
+    }
+
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        return Future.error('Location permissions are denied');
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      return Future.error(
+          'Location permissions are permanently denied, we cannot request permissions.');
+    }
+
+    _lastPosition = await Geolocator.getCurrentPosition();
+    setState(() {});
   }
 
   void _saveRecord() async {
@@ -44,7 +88,7 @@ class _TimerScreenState extends State<TimerScreen> {
           .collection('record')
           .doc();
       await recordRef.set({
-        'date': dateFormat.parse(DateTime.now().toString()),
+        'date': dateFormat.format(DateTime.now()),
         'distance': distance,
         'start_time': startTime,
         'end_time': endTime,
@@ -59,6 +103,32 @@ class _TimerScreenState extends State<TimerScreen> {
   }
 
   void startTimer() {
+    // 현재 시간으로 startTime 업데이트
+    startTime = DateFormat('HH:mm:ss').format(DateTime.now());
+
+    _lastPosition = _currentPosition;
+
+    locationTimer = Timer.periodic(Duration(seconds: 5), (locationTimer) async {
+      Position newPosition = await Geolocator.getCurrentPosition();
+      if (_lastPosition != null) {
+        double distanceInMeters = Geolocator.distanceBetween(
+          _lastPosition!.latitude,
+          _lastPosition!.longitude,
+          newPosition.latitude,
+          newPosition.longitude,
+        );
+
+        _totalDistance += distanceInMeters;
+        print("이동 거리: ${_totalDistance.toStringAsFixed(1)} m");
+
+        setState(() {
+          distance = (_totalDistance / 1000).toStringAsFixed(1); // km로 변환
+        });
+
+        _lastPosition = newPosition;
+      }
+    });
+
     timer = Timer.periodic(Duration(seconds: 1), (timer) {
       if (mounted) {
         setState(() {
@@ -74,8 +144,9 @@ class _TimerScreenState extends State<TimerScreen> {
   }
 
   void stopTimer() {
-    _saveRecord();
+    //_saveRecord();
     timer?.cancel();
+    locationTimer?.cancel();
     if (mounted) {
       setState(() {
         isRunning = false;
@@ -85,9 +156,12 @@ class _TimerScreenState extends State<TimerScreen> {
 
   void resetTimer() {
     timer?.cancel();
+    locationTimer?.cancel();
     if (mounted) {
       setState(() {
         seconds = 0;
+        _totalDistance = 0.0;
+        distance = "0.0";
         isRunning = false;
       });
     }
@@ -96,6 +170,7 @@ class _TimerScreenState extends State<TimerScreen> {
   @override
   void dispose() {
     timer?.cancel();
+    locationTimer?.cancel();
     super.dispose();
   }
 
@@ -117,7 +192,7 @@ class _TimerScreenState extends State<TimerScreen> {
       body: Column(
         children: <Widget>[
           TimerRecords(distance: distance, time: time, updateGoal: updateGoal),
-          Expanded(child: TimerDisplay(seconds: seconds)),
+          Expanded(child: TimerDisplay(seconds: seconds, distance: distance)),
           TimerControls(
               isRunning: isRunning,
               startTimer: startTimer,
@@ -166,7 +241,7 @@ class TimerRecords extends StatelessWidget {
               style: const TextStyle(fontSize: 16, color: Colors.white),
               children: <TextSpan>[
                 TextSpan(
-                  text: '${distance}m ${time}초',
+                  text: '${distance}km ${time}초',
                   style: const TextStyle(
                       color: gray4,
                       fontFamily: 'PretandardMedium',
@@ -194,7 +269,9 @@ class TimerRecords extends StatelessWidget {
 
 class TimerDisplay extends StatelessWidget {
   final int seconds;
-  const TimerDisplay({Key? key, required this.seconds}) : super(key: key);
+  final String distance;
+  const TimerDisplay({Key? key, required this.seconds, required this.distance})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -214,6 +291,14 @@ class TimerDisplay extends StatelessWidget {
               border: Border.all(
                   color: Color.fromARGB(255, 229, 224, 224), width: 3),
             ),
+          ),
+          Text(
+            '$distance Km',
+            style: const TextStyle(
+                color: gray4,
+                fontFamily: 'PretandardMedium',
+                fontSize: 20.0,
+                fontWeight: FontWeight.bold),
           ),
           Text(
               '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}',

@@ -429,22 +429,25 @@ class TimerControls extends StatelessWidget {
               ),
             ),
             if (hasStarted)
-              ElevatedButton(
-                onPressed: resetTimer,
-                child: const Text(
-                  '기록',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontFamily: 'PretandardMedium',
-                    fontSize: 15.0,
-                    fontWeight: FontWeight.bold,
+              Padding(
+                padding: const EdgeInsets.only(bottom: 20.0),
+                child: ElevatedButton(
+                  onPressed: resetTimer,
+                  child: const Text(
+                    '기록',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontFamily: 'PretandardMedium',
+                      fontSize: 15.0,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: iris_100,
-                  foregroundColor: Colors.white,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 50, vertical: 20),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: iris_100,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 50, vertical: 20),
+                  ),
                 ),
               ),
           ],
