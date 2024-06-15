@@ -52,7 +52,7 @@ class _FlutterBlueAppState extends State<FlutterBlueApp> {
       setState(() {
         connectedDevice = device;
       });
-      print("${device.name}에 연결되었습니다.");
+      print("${device.platformName}에 연결되었습니다.");
     } catch (e) {
       print("Error connecting to device: $e");
     }
@@ -90,7 +90,7 @@ class _FlutterBlueAppState extends State<FlutterBlueApp> {
     // 검색된 디바이스 리스닝
     var subscription = FlutterBluePlus.scanResults.listen((results) {
       for (var result in results) {
-        if (result.device.name == 'RunningMate') {
+        if (result.device.platformName == 'RunningMate') {
           // 'RunningMate' 기기 찾으면 연결
           connectToDevice(result.device);
           FlutterBluePlus.stopScan();
@@ -117,8 +117,17 @@ class _FlutterBlueAppState extends State<FlutterBlueApp> {
         break;
       }
     }
-    if (connectedDevice == null) {
-      startScanAndConnect();
+    // if (connectedDevice == null) {
+    //   startScanAndConnect();
+    // }
+  }
+
+  void disconnectFromDevice() async {
+    if (connectedDevice != null) {
+      await connectedDevice?.disconnect();
+      setState(() {
+        connectedDevice = null;
+      });
     }
   }
 
@@ -140,9 +149,11 @@ class _FlutterBlueAppState extends State<FlutterBlueApp> {
                 color: iris_100,
               ),
               child: TextButton(
-                onPressed: startScanAndConnect,
-                child: const Text(
-                  '블루투스 연결하기',
+                onPressed: connectedDevice == null
+                    ? startScanAndConnect
+                    : disconnectFromDevice,
+                child: Text(
+                  connectedDevice == null ? '블루투스 연결하기' : '연결 해제하기',
                   style: TextStyle(
                     color: Colors.white,
                     fontFamily: 'PretandardMedium',
@@ -172,7 +183,7 @@ class _FlutterBlueAppState extends State<FlutterBlueApp> {
                 : Column(
                     children: [
                       Text(
-                        '${connectedDevice!.name}에 연결되었습니다.',
+                        '${connectedDevice!.platformName}에 연결되었습니다.',
                         style: TextStyle(
                           color: gray3,
                           fontFamily: 'PretandardMedium',
@@ -184,16 +195,16 @@ class _FlutterBlueAppState extends State<FlutterBlueApp> {
                         height: 100.0,
                         fit: BoxFit.fill,
                       ),
-                      TextField(
-                        controller: paceController,
-                        decoration: InputDecoration(
-                          labelText: 'Enter pace',
-                        ),
-                      ),
-                      ElevatedButton(
-                        onPressed: sendRunningData,
-                        child: Text('Send Data'),
-                      ),
+                      // TextField(
+                      //   controller: paceController,
+                      //   decoration: InputDecoration(
+                      //     labelText: 'Enter pace',
+                      //   ),
+                      // ),
+                      // ElevatedButton(
+                      //   onPressed: sendRunningData,
+                      //   child: Text('Send Data'),
+                      // ),
                     ],
                   ),
           ],
