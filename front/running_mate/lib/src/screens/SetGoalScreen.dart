@@ -89,6 +89,7 @@ class _SetGoalScreenState extends State<SetGoalScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.white,
         title: Text(
           '목표 설정하기',
           style: TextStyle(
@@ -99,93 +100,99 @@ class _SetGoalScreenState extends State<SetGoalScreen> {
           ),
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            TextField(
-              controller: _goalController,
-              decoration: InputDecoration(
-                labelText: '목표 설정하기',
-                labelStyle: TextStyle(
-                  fontFamily: 'PretandardMedium',
-                  color: gray4, // 레이블 텍스트 색상
-                  fontSize: 20, // 레이블 텍스트 크기
-                ),
-                border: OutlineInputBorder(),
-                enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(
-                    color: iris_100, // 기본 테두리 색상
+      body: Container(
+        color: Colors.white,
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Container(
+            color: Colors.white,
+            child: Column(
+              children: [
+                TextField(
+                  controller: _goalController,
+                  decoration: InputDecoration(
+                    labelText: '목표 설정하기',
+                    labelStyle: TextStyle(
+                      fontFamily: 'PretandardMedium',
+                      color: gray4, // 레이블 텍스트 색상
+                      fontSize: 20, // 레이블 텍스트 크기
+                    ),
+                    border: OutlineInputBorder(),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: iris_100, // 기본 테두리 색상
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: iris_80,
+                      ),
+                    ),
                   ),
                 ),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(
-                    color: iris_80,
+                SizedBox(height: 20),
+                TextField(
+                  controller: _dateController,
+                  //readOnly: true,
+                  decoration: InputDecoration(
+                    labelText: '날짜 설정하기',
+                    labelStyle: TextStyle(
+                      fontFamily: 'PretandardMedium',
+                      color: gray4, // 레이블 텍스트 색상
+                      fontSize: 20, // 레이블 텍스ㄴ트 크기
+                    ),
+                    hintText: '날짜를 선택해주세요',
+                    hintStyle: TextStyle(
+                      fontFamily: 'PretandardMedium',
+                      color: gray4, // 레이블 텍스트 색상
+                      fontSize: 14, // 레이블 텍스ㄴ트 크기
+                    ),
+                    border: OutlineInputBorder(),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: iris_100,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: iris_80,
+                      ),
+                    ),
                   ),
+                  onTap: () => _selectDate(context),
                 ),
-              ),
-            ),
-            SizedBox(height: 20),
-            TextField(
-              controller: _dateController,
-              //readOnly: true,
-              decoration: InputDecoration(
-                labelText: '날짜 설정하기',
-                labelStyle: TextStyle(
-                  fontFamily: 'PretandardMedium',
-                  color: gray4, // 레이블 텍스트 색상
-                  fontSize: 20, // 레이블 텍스ㄴ트 크기
-                ),
-                hintText: '날짜를 선택해주세요',
-                hintStyle: TextStyle(
-                  fontFamily: 'PretandardMedium',
-                  color: gray4, // 레이블 텍스트 색상
-                  fontSize: 14, // 레이블 텍스ㄴ트 크기
-                ),
-                border: OutlineInputBorder(),
-                enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(
+                SizedBox(height: 20),
+                Container(
+                  height: 65.0,
+                  width: 100.0,
+                  margin: EdgeInsets.fromLTRB(0.0, 25.0, 2.0, 0.0),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20.0),
                     color: iris_100,
                   ),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(
-                    color: iris_80,
-                  ),
-                ),
-              ),
-              onTap: () => _selectDate(context),
-            ),
-            SizedBox(height: 20),
-            Container(
-              height: 65.0,
-              width: 100.0,
-              margin: EdgeInsets.fromLTRB(0.0, 25.0, 2.0, 0.0),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20.0),
-                color: iris_100,
-              ),
-              child: TextButton(
-                onPressed: () {
-                  _saveGoal();
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => PracticeScreen(),
+                  child: TextButton(
+                    onPressed: () {
+                      _saveGoal();
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => PracticeScreen(),
+                        ),
+                      );
+                    },
+                    child: Text(
+                      '확인', // 버튼에 표시될 텍스트입니다.
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontFamily: 'PretandardMedium',
+                        fontSize: 18.0,
+                      ),
                     ),
-                  );
-                },
-                child: Text(
-                  '확인', // 버튼에 표시될 텍스트입니다.
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontFamily: 'PretandardMedium',
-                    fontSize: 18.0,
                   ),
                 ),
-              ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );

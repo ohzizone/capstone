@@ -1,8 +1,14 @@
 buildscript {
-    ext.kotlin_version = '1.5.31'  // 최신 Kotlin 버전으로 설정
+    ext.kotlin_version = '2.0.0'  // 최신 Kotlin 버전으로 설정
     repositories {
         google()
         mavenCentral()
+    }
+
+    dependencies {
+        classpath 'com.android.tools.build:gradle:8.0.2' // 8.0.2로 변경하여 버전 충돌 해결
+        classpath 'com.google.gms:google-services:4.3.14' // 최신 Google 서비스 플러그인 버전
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
     // dependencies {
     //     classpath 'com.android.tools.build:gradle:8.4.0'  // 적절한 버전으로 수정
@@ -10,13 +16,13 @@ buildscript {
     // }
 }
 
-plugins {
-    id 'com.android.application' version '7.3.0' apply false
-  // ...
+// plugins {
+//     id 'com.android.application' version"8.4.0" apply false
+//   // ...
 
-  // Add the dependency for the Google services Gradle plugin
-    id 'com.google.gms.google-services' version '4.3.15' apply false
-}
+//   // Add the dependency for the Google services Gradle plugin
+//     id 'com.google.gms.google-services' version '4.4.1' apply false
+// }
 
 allprojects {
     repositories {

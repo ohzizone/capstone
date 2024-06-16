@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:running_mate/src/screens/HomeScreen.dart';
 import 'package:running_mate/src/screens/Counter.dart';
 import 'package:running_mate/src/screens/PracticeScreen.dart';
+import 'package:running_mate/src/screens/test.dart';
 import 'package:running_mate/src/theme/colors.dart';
 import 'dart:ui';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -496,13 +497,13 @@ class _LoginScreenState extends State<LoginScreen> {
                           //_tryValidation(); // 유효성 검사 실행
 
                           try {
-                            final newUser = await _authentication
+                            final currentUser = await _authentication
                                 .signInWithEmailAndPassword(
                               email: userEmail,
                               password: userPassword,
                             );
 
-                            if (newUser != null) {
+                            if (currentUser != null) {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(builder: (context) {
