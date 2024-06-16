@@ -1,14 +1,15 @@
 import 'dart:async';
-import 'dart:ui';
+import 'dart:convert'; // 추가: utf8 인코딩을 위해 필요
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart'; // 추가: 블루투스 패키지
 import 'package:running_mate/src/theme/colors.dart';
 import 'package:running_mate/src/services/location.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:fluttertoast/fluttertoast.dart'; // 추가: 토스트 메시지 패키지
 
 class TimerScreen extends StatefulWidget {
   @override
@@ -16,11 +17,17 @@ class TimerScreen extends StatefulWidget {
 }
 
 class _TimerScreenState extends State<TimerScreen> {
+  BluetoothDevice? connectedDevice; // 블루투스 연결된 장치
+
   @override
   void initState() {
     super.initState();
     getLocationData();
+    checkConnection(); // 앱이 실행될 때 연결 상태 확인
   }
+
+  String goalDistance = "0.0";
+  String goalTime = "0";
 
   String distance = "0.0";
   String startTime = "";
@@ -45,9 +52,65 @@ class _TimerScreenState extends State<TimerScreen> {
   void updateGoal(String newDistance, String newTime) {
     if (mounted) {
       setState(() {
-        distance = newDistance;
-        time = newTime;
+        double distanceInKm = double.parse(newDistance) / 1000;
+        goalDistance = distanceInKm.toStringAsFixed(1); // km로 변환하여 저장
+        goalTime = newTime;
       });
+      sendRunningData(); // 데이터 전송 시도
+    }
+  }
+
+  void checkConnection() async {
+    List<BluetoothDevice> connectedDevices =
+    await FlutterBluePlus.connectedDevices;
+    for (var device in connectedDevices) {
+      if (device.name == 'RunningMate') {
+        setState(() {
+          connectedDevice = device;
+        });
+        break;
+      }
+    }
+    // if (connectedDevice == null) {
+    //   startScanAndConnect();
+    // }
+  }
+
+  void sendRunningData() async {
+    if (connectedDevice == null) {
+      Fluttertoast.showToast(
+          msg: "블루투스 연결을 확인해주세요",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          textColor: Colors.white,
+          fontSize: 16.0);
+      return;
+    }
+
+    try {
+      var serviceUuid =
+      Guid("0000ffe0-0000-1000-8000-00805f9b34fb"); // HM-10 기본 서비스 UUID
+      var characteristicUuid =
+      Guid("0000ffe1-0000-1000-8000-00805f9b34fb"); // HM-10 기본 특성 UUID
+
+      List<BluetoothService> services =
+      await connectedDevice!.discoverServices();
+      var targetService =
+      services.firstWhere((service) => service.uuid == serviceUuid);
+      var targetCharacteristic = targetService.characteristics
+          .firstWhere((char) => char.uuid == characteristicUuid);
+
+      double distanceInKm = double.parse(goalDistance);
+      int distanceInMeters = (distanceInKm * 1000).toInt(); // km를 m로 변환
+      String sendDistance = distanceInMeters.toString();
+      String pace = (seconds / 60).toStringAsFixed(1);
+
+      print("Distance: $sendDistance, Pace: $goalTime");
+
+      await targetCharacteristic.write(utf8.encode("$sendDistance:$goalTime"));
+      print("Data sent successfully.");
+    } catch (e) {
+      print("Failed to send data: $e");
     }
   }
 
@@ -88,7 +151,7 @@ class _TimerScreenState extends State<TimerScreen> {
           .doc();
       await recordRef.set({
         'date': dateFormat.format(DateTime.now()),
-        'distance': distance,
+        'distance': _totalDistance,
         'start_time': startTime,
         'end_time': endTime,
         'pace': '6.48'
@@ -104,7 +167,6 @@ class _TimerScreenState extends State<TimerScreen> {
   void startTimer() {
     // 현재 시간으로 startTime 업데이트
     startTime = DateFormat('HH:mm:ss').format(DateTime.now());
-
     _lastPosition = _currentPosition;
 
     locationTimer = Timer.periodic(Duration(seconds: 5), (locationTimer) async {
@@ -121,7 +183,9 @@ class _TimerScreenState extends State<TimerScreen> {
         print("이동 거리: ${_totalDistance.toStringAsFixed(1)} m");
 
         setState(() {
-          distance = (_totalDistance / 1000).toStringAsFixed(1); // km로 변환
+          double distanceInKm = _totalDistance / 1000;
+          double truncatedDistance = (distanceInKm * 10).floorToDouble() / 10;
+          distance = truncatedDistance.toStringAsFixed(1); // km로 변환
         });
 
         _lastPosition = newPosition;
@@ -146,8 +210,10 @@ class _TimerScreenState extends State<TimerScreen> {
     //_saveRecord();
     timer?.cancel();
     locationTimer?.cancel();
+    _lastPosition = null; // 마지막 위치를 null로 설정하여 다시 시작할 때 초기화
     if (mounted) {
       setState(() {
+        _lastPosition = _currentPosition;
         isRunning = false;
       });
     }
@@ -190,7 +256,10 @@ class _TimerScreenState extends State<TimerScreen> {
       ),
       body: Column(
         children: <Widget>[
-          TimerRecords(distance: distance, time: time, updateGoal: updateGoal),
+          TimerRecords(
+              goalDistance: goalDistance,
+              goalTime: goalTime,
+              updateGoal: updateGoal),
           Expanded(child: TimerDisplay(seconds: seconds, distance: distance)),
           TimerControls(
               isRunning: isRunning,
@@ -204,15 +273,15 @@ class _TimerScreenState extends State<TimerScreen> {
 }
 
 class TimerRecords extends StatelessWidget {
-  final String distance;
-  final String time;
+  final String goalDistance;
+  final String goalTime;
   final Function(String, String) updateGoal;
 
   const TimerRecords(
       {Key? key,
-      required this.distance,
-      required this.time,
-      required this.updateGoal})
+        required this.goalDistance,
+        required this.goalTime,
+        required this.updateGoal})
       : super(key: key);
 
   @override
@@ -240,7 +309,7 @@ class TimerRecords extends StatelessWidget {
               style: const TextStyle(fontSize: 16, color: Colors.white),
               children: <TextSpan>[
                 TextSpan(
-                  text: '${distance}km ${time}초',
+                  text: '${goalDistance}km ${goalTime}초',
                   style: const TextStyle(
                       color: gray4,
                       fontFamily: 'PretandardMedium',
@@ -278,33 +347,40 @@ class TimerDisplay extends StatelessWidget {
     int minutes = (seconds % 3600) ~/ 60;
     int secs = seconds % 60;
     return Center(
-      child: Stack(
-        alignment: Alignment.center,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            width: 280,
-            height: 280,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
-              border: Border.all(
-                  color: Color.fromARGB(255, 229, 224, 224), width: 3),
-            ),
-          ),
           Text(
             '$distance Km',
             style: const TextStyle(
-                color: gray4,
-                fontFamily: 'PretandardMedium',
-                fontSize: 20.0,
-                fontWeight: FontWeight.bold),
+              color: gray4,
+              fontFamily: 'PretandardMedium',
+              fontSize: 30.0, // 글씨 크기를 더 크게 설정
+              fontWeight: FontWeight.bold,
+            ),
           ),
-          Text(
-              '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}',
-              style: TextStyle(
-                  fontSize: 30,
-                  fontWeight: FontWeight.bold,
-                  color: Color.fromARGB(220, 153, 146, 146))),
+          const SizedBox(height: 20),
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              Container(
+                width: 280,
+                height: 280,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                      color: Color.fromARGB(255, 229, 224, 224), width: 3),
+                ),
+              ),
+              Text(
+                  '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}',
+                  style: TextStyle(
+                      fontSize: 30,
+                      fontWeight: FontWeight.bold,
+                      color: Color.fromARGB(220, 153, 146, 146))),
+            ],
+          ),
         ],
       ),
     );
@@ -319,10 +395,10 @@ class TimerControls extends StatelessWidget {
 
   TimerControls(
       {Key? key,
-      required this.isRunning,
-      required this.startTimer,
-      required this.stopTimer,
-      required this.resetTimer})
+        required this.isRunning,
+        required this.startTimer,
+        required this.stopTimer,
+        required this.resetTimer})
       : super(key: key);
 
   @override
@@ -350,7 +426,7 @@ class TimerControls extends StatelessWidget {
                   backgroundColor: iris_100,
                   foregroundColor: Colors.white,
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 50, vertical: 20),
+                  const EdgeInsets.symmetric(horizontal: 50, vertical: 20),
                 ),
               ),
             )
@@ -372,7 +448,7 @@ class TimerControls extends StatelessWidget {
                   backgroundColor: iris_100,
                   foregroundColor: Colors.white,
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 50, vertical: 20),
+                  const EdgeInsets.symmetric(horizontal: 50, vertical: 20),
                 ),
               ),
             ),
@@ -393,7 +469,7 @@ class TimerControls extends StatelessWidget {
                   backgroundColor: iris_100,
                   foregroundColor: Colors.white,
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 50, vertical: 20),
+                  const EdgeInsets.symmetric(horizontal: 50, vertical: 20),
                 ),
               ),
             ),

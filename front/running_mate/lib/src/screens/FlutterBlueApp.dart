@@ -135,79 +135,83 @@ class _FlutterBlueAppState extends State<FlutterBlueApp> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.white,
         title: Text('블루투스 연결'),
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Container(
-              height: 65.0,
-              margin: EdgeInsets.fromLTRB(0.0, 25.0, 2.0, 0.0),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20.0),
-                color: iris_100,
-              ),
-              child: TextButton(
-                onPressed: connectedDevice == null
-                    ? startScanAndConnect
-                    : disconnectFromDevice,
-                child: Text(
-                  connectedDevice == null ? '블루투스 연결하기' : '연결 해제하기',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontFamily: 'PretandardMedium',
-                    fontSize: 18.0,
+      body: Container(
+        color: Colors.white,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Container(
+                height: 65.0,
+                margin: EdgeInsets.fromLTRB(0.0, 25.0, 2.0, 0.0),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20.0),
+                  color: iris_100,
+                ),
+                child: TextButton(
+                  onPressed: connectedDevice == null
+                      ? startScanAndConnect
+                      : disconnectFromDevice,
+                  child: Text(
+                    connectedDevice == null ? '블루투스 연결하기' : '연결 해제하기',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontFamily: 'PretandardMedium',
+                      fontSize: 18.0,
+                    ),
                   ),
                 ),
               ),
-            ),
-            connectedDevice == null
-                ? Column(
-                    children: [
-                      Text(
-                        '러닝메이트에 연결할 수 없습니다.',
-                        style: TextStyle(
-                          color: gray3,
-                          fontFamily: 'PretandardMedium',
-                          fontSize: 18.0,
+              connectedDevice == null
+                  ? Column(
+                      children: [
+                        Text(
+                          '러닝메이트와 연결돼 있지 않아요!',
+                          style: TextStyle(
+                            color: gray3,
+                            fontFamily: 'PretandardMedium',
+                            fontSize: 18.0,
+                          ),
                         ),
-                      ),
-                      Image.asset(
-                        'assets/images/disconnect.png',
-                        height: 100.0,
-                        fit: BoxFit.fill,
-                      ),
-                    ],
-                  )
-                : Column(
-                    children: [
-                      Text(
-                        '${connectedDevice!.platformName}에 연결되었습니다.',
-                        style: TextStyle(
-                          color: gray3,
-                          fontFamily: 'PretandardMedium',
-                          fontSize: 18.0,
+                        Image.asset(
+                          'assets/images/disconnect.png',
+                          height: 100.0,
+                          fit: BoxFit.fill,
                         ),
-                      ),
-                      Image.asset(
-                        'assets/images/connect.png',
-                        height: 100.0,
-                        fit: BoxFit.fill,
-                      ),
-                      // TextField(
-                      //   controller: paceController,
-                      //   decoration: InputDecoration(
-                      //     labelText: 'Enter pace',
-                      //   ),
-                      // ),
-                      // ElevatedButton(
-                      //   onPressed: sendRunningData,
-                      //   child: Text('Send Data'),
-                      // ),
-                    ],
-                  ),
-          ],
+                      ],
+                    )
+                  : Column(
+                      children: [
+                        Text(
+                          '러닝메이트에 연결되었습니다.',
+                          style: TextStyle(
+                            color: gray3,
+                            fontFamily: 'PretandardMedium',
+                            fontSize: 18.0,
+                          ),
+                        ),
+                        Image.asset(
+                          'assets/images/connect.png',
+                          height: 100.0,
+                          fit: BoxFit.fill,
+                        ),
+                        // TextField(
+                        //   controller: paceController,
+                        //   decoration: InputDecoration(
+                        //     labelText: 'Enter pace',
+                        //   ),
+                        // ),
+                        // ElevatedButton(
+                        //   onPressed: sendRunningData,
+                        //   child: Text('Send Data'),
+                        // ),
+                      ],
+                    ),
+            ],
+          ),
         ),
       ),
     );
